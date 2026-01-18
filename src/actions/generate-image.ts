@@ -2,13 +2,17 @@
 
 import { createClient } from "@/lib/supabase/server";
 import {
-  generateWithGemini,
-  buildGeminiPrompt,
-  STYLE_PROMPTS,
-} from "@/lib/gemini";
+  generateWithFlux,
+  buildFluxPrompt,
+  FLUX_STYLE_PROMPTS,
+} from "@/lib/flux";
 import { STYLE_PRESETS, type GenerationInsert, type Generation } from "@/types/database";
 import { redirect } from "next/navigation";
 import { ALPHA_LIMIT } from "@/lib/constants";
+
+// AI Provider configuration - change this to switch between providers
+// Options: "flux" | "gemini"
+const AI_PROVIDER = "flux" as const;
 
 interface GenerateImageInput {
   originalImageUrl: string;
@@ -18,7 +22,7 @@ interface GenerateImageInput {
 }
 
 export async function generateImage(input: GenerateImageInput) {
-  console.log("=== generateImage called (Gemini) ===");
+  console.log(`=== generateImage called (${AI_PROVIDER}) ===`);
   console.log("Input:", JSON.stringify(input, null, 2));
 
   const supabase = await createClient();
@@ -65,9 +69,9 @@ export async function generateImage(input: GenerateImageInput) {
 
   console.log("Style found:", style.name);
 
-  // Build the full prompt using Gemini-specific prompts
-  const stylePrompt = STYLE_PROMPTS[input.styleId] || STYLE_PROMPTS.modern;
-  const fullPrompt = buildGeminiPrompt(stylePrompt, input.customPrompt);
+  // Build the full prompt
+  const stylePrompt = FLUX_STYLE_PROMPTS[input.styleId] || FLUX_STYLE_PROMPTS.modern;
+  const fullPrompt = buildFluxPrompt(stylePrompt, input.customPrompt);
 
   try {
     // Create generation record in database
@@ -94,32 +98,41 @@ export async function generateImage(input: GenerateImageInput) {
     const gen = generation as unknown as Generation;
     console.log("Generation record created:", gen.id);
 
-    // Call Gemini via fal.ai - this is synchronous, no webhook needed
-    console.log("Calling Gemini API via fal.ai...");
+    // Generate image using the configured provider
+    console.log(`Calling ${AI_PROVIDER} API...`);
     console.log("Image URL:", input.originalImageUrl);
 
-    const result = await generateWithGemini({
-      imageUrl: input.originalImageUrl,
-      prompt: fullPrompt,
-      resolution: "1K",
-      outputFormat: "webp",
-    });
+    let generatedImageUrl: string;
 
-    if (!result.images || result.images.length === 0) {
-      console.error("Gemini returned no images");
-      await supabase
-        .from("generations")
-        .update({
-          status: "failed",
-          error_message: "No se generó ninguna imagen",
-        } as never)
-        .eq("id", gen.id);
+    if (AI_PROVIDER === "flux") {
+      const result = await generateWithFlux({
+        image: input.originalImageUrl,
+        prompt: fullPrompt,
+        promptStrength: 0.4, // 40% change, 60% original preserved
+        outputFormat: "webp",
+        outputQuality: 90,
+      });
+      generatedImageUrl = result.output;
+    } else {
+      // Gemini provider (alternative)
+      const { generateWithGemini, buildGeminiPrompt, STYLE_PROMPTS } = await import("@/lib/gemini");
+      const geminiStylePrompt = STYLE_PROMPTS[input.styleId] || STYLE_PROMPTS.modern;
+      const geminiPrompt = buildGeminiPrompt(geminiStylePrompt, input.customPrompt);
 
-      return { error: "La generación no produjo ninguna imagen" };
+      const result = await generateWithGemini({
+        imageUrl: input.originalImageUrl,
+        prompt: geminiPrompt,
+        resolution: "1K",
+        outputFormat: "webp",
+      });
+
+      if (!result.images || result.images.length === 0) {
+        throw new Error("No images generated");
+      }
+      generatedImageUrl = result.images[0].url;
     }
 
-    const generatedImageUrl = result.images[0].url;
-    console.log("Gemini generation completed:", generatedImageUrl);
+    console.log("Generation completed:", generatedImageUrl);
 
     // Update generation with result
     const { error: updateError } = await supabase
@@ -141,7 +154,7 @@ export async function generateImage(input: GenerateImageInput) {
       generatedImageUrl,
     };
   } catch (error) {
-    console.error("Gemini error:", error);
+    console.error(`${AI_PROVIDER} error:`, error);
     if (error instanceof Error) {
       console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
