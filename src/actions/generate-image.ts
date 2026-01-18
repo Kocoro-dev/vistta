@@ -12,7 +12,7 @@ import { ALPHA_LIMIT, UNLIMITED_USERS } from "@/lib/constants";
 
 // AI Provider configuration - change this to switch between providers
 type AIProvider = "flux" | "google-ai" | "gemini-fal";
-const AI_PROVIDER: AIProvider = "google-ai";
+const AI_PROVIDER: AIProvider = "flux";
 
 interface GenerateImageInput {
   originalImageUrl: string;

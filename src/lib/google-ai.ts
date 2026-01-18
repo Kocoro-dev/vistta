@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
 
 // Model for image generation/editing
-const IMAGE_MODEL = "gemini-2.0-flash-exp-image-generation";
+const IMAGE_MODEL = "gemini-3-pro-image-preview";
 
 export interface GoogleAIGenerationInput {
   imageUrl: string;
