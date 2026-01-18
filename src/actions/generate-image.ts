@@ -8,7 +8,7 @@ import {
 } from "@/lib/flux";
 import { STYLE_PRESETS, type GenerationInsert, type Generation } from "@/types/database";
 import { redirect } from "next/navigation";
-import { ALPHA_LIMIT } from "@/lib/constants";
+import { ALPHA_LIMIT, UNLIMITED_USERS } from "@/lib/constants";
 
 // AI Provider configuration - change this to switch between providers
 type AIProvider = "flux" | "google-ai" | "gemini-fal";
@@ -38,8 +38,12 @@ export async function generateImage(input: GenerateImageInput) {
   }
 
   console.log("User ID:", user.id);
+  console.log("User email:", user.email);
 
-  // Check generation limit (5 images for alpha)
+  // Check if user has unlimited access
+  const isUnlimited = user.email && UNLIMITED_USERS.includes(user.email);
+
+  // Check generation limit (5 images for alpha) - skip for unlimited users
   const { count, error: countError } = await supabase
     .from("generations")
     .select("*", { count: "exact", head: true })
@@ -51,9 +55,9 @@ export async function generateImage(input: GenerateImageInput) {
 
   const generationCount = count || 0;
 
-  console.log("Generation count:", generationCount, "/", ALPHA_LIMIT);
+  console.log("Generation count:", generationCount, "/", ALPHA_LIMIT, isUnlimited ? "(unlimited)" : "");
 
-  if (generationCount >= ALPHA_LIMIT) {
+  if (!isUnlimited && generationCount >= ALPHA_LIMIT) {
     return {
       error: `Has alcanzado el límite de ${ALPHA_LIMIT} imágenes en la versión alpha. ¡Gracias por probar VISTTA!`,
       limitReached: true,
@@ -211,8 +215,10 @@ export async function getUserGenerationStats() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { count: 0, limit: ALPHA_LIMIT, remaining: ALPHA_LIMIT };
+    return { count: 0, limit: ALPHA_LIMIT, remaining: ALPHA_LIMIT, unlimited: false };
   }
+
+  const isUnlimited = user.email && UNLIMITED_USERS.includes(user.email);
 
   const { count, error } = await supabase
     .from("generations")
@@ -221,13 +227,14 @@ export async function getUserGenerationStats() {
 
   if (error) {
     console.error("Stats error:", error);
-    return { count: 0, limit: ALPHA_LIMIT, remaining: ALPHA_LIMIT };
+    return { count: 0, limit: ALPHA_LIMIT, remaining: ALPHA_LIMIT, unlimited: isUnlimited };
   }
 
   const generationCount = count || 0;
   return {
     count: generationCount,
     limit: ALPHA_LIMIT,
-    remaining: Math.max(0, ALPHA_LIMIT - generationCount),
+    remaining: isUnlimited ? Infinity : Math.max(0, ALPHA_LIMIT - generationCount),
+    unlimited: isUnlimited,
   };
 }

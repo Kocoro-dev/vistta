@@ -2,14 +2,18 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { GenerationCard } from "@/components/generation-card";
-import { Plus, ImageIcon, Sparkles, AlertCircle } from "lucide-react";
+import { Plus, ImageIcon, Sparkles, AlertCircle, Infinity } from "lucide-react";
 import type { Generation } from "@/types/database";
-import { ALPHA_LIMIT } from "@/lib/constants";
+import { ALPHA_LIMIT, UNLIMITED_USERS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  const isUnlimited = user?.email && UNLIMITED_USERS.includes(user.email);
 
   const { data } = await supabase
     .from("generations")
@@ -18,8 +22,8 @@ export default async function DashboardPage() {
 
   const generations = (data || []) as unknown as Generation[];
   const generationCount = generations.length;
-  const remaining = Math.max(0, ALPHA_LIMIT - generationCount);
-  const limitReached = remaining === 0;
+  const remaining = isUnlimited ? Infinity : Math.max(0, ALPHA_LIMIT - generationCount);
+  const limitReached = !isUnlimited && remaining === 0;
 
   return (
     <div className="min-h-screen bg-gray-50/50">
@@ -43,9 +47,15 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-3">
               <div className="bg-white rounded-xl px-4 py-2 border border-amber-200/50">
-                <div className="text-[13px] text-gray-500">Imágenes restantes</div>
+                <div className="text-[13px] text-gray-500">
+                  {isUnlimited ? "Imágenes generadas" : "Imágenes restantes"}
+                </div>
                 <div className="text-[20px] font-semibold text-gray-900">
-                  {remaining} <span className="text-[14px] text-gray-400 font-normal">/ {ALPHA_LIMIT}</span>
+                  {isUnlimited ? (
+                    <>{generationCount} <Infinity className="inline h-5 w-5 text-gray-400" /></>
+                  ) : (
+                    <>{remaining} <span className="text-[14px] text-gray-400 font-normal">/ {ALPHA_LIMIT}</span></>
+                  )}
                 </div>
               </div>
             </div>
