@@ -12,7 +12,7 @@ import { ALPHA_LIMIT, UNLIMITED_USERS } from "@/lib/constants";
 
 // AI Provider configuration - change this to switch between providers
 type AIProvider = "flux" | "google-ai" | "gemini-fal";
-const AI_PROVIDER: AIProvider = "flux";
+const AI_PROVIDER: AIProvider = "google-ai";
 
 interface GenerateImageInput {
   originalImageUrl: string;
@@ -113,7 +113,7 @@ export async function generateImage(input: GenerateImageInput) {
       const result = await generateWithFlux({
         image: input.originalImageUrl,
         prompt: fullPrompt,
-        promptStrength: 0.4,
+        promptStrength: 0.6,
         outputFormat: "webp",
         outputQuality: 90,
       });
