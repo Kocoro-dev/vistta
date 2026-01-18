@@ -11,8 +11,8 @@ import { redirect } from "next/navigation";
 import { ALPHA_LIMIT } from "@/lib/constants";
 
 // AI Provider configuration - change this to switch between providers
-// Options: "flux" | "gemini"
-const AI_PROVIDER = "flux" as const;
+type AIProvider = "flux" | "google-ai" | "gemini-fal";
+const AI_PROVIDER: AIProvider = "google-ai";
 
 interface GenerateImageInput {
   originalImageUrl: string;
@@ -105,16 +105,28 @@ export async function generateImage(input: GenerateImageInput) {
     let generatedImageUrl: string;
 
     if (AI_PROVIDER === "flux") {
+      // Flux Dev via Replicate
       const result = await generateWithFlux({
         image: input.originalImageUrl,
         prompt: fullPrompt,
-        promptStrength: 0.4, // 40% change, 60% original preserved
+        promptStrength: 0.4,
         outputFormat: "webp",
         outputQuality: 90,
       });
       generatedImageUrl = result.output;
+    } else if (AI_PROVIDER === "google-ai") {
+      // Gemini via Google AI Studio (direct)
+      const { generateWithGoogleAI, buildGoogleAIPrompt, GOOGLE_AI_STYLE_PROMPTS } = await import("@/lib/google-ai");
+      const googleStylePrompt = GOOGLE_AI_STYLE_PROMPTS[input.styleId] || GOOGLE_AI_STYLE_PROMPTS.modern;
+      const googlePrompt = buildGoogleAIPrompt(googleStylePrompt, input.customPrompt);
+
+      const result = await generateWithGoogleAI({
+        imageUrl: input.originalImageUrl,
+        prompt: googlePrompt,
+      });
+      generatedImageUrl = result.imageUrl;
     } else {
-      // Gemini provider (alternative)
+      // Gemini via fal.ai (alternative)
       const { generateWithGemini, buildGeminiPrompt, STYLE_PROMPTS } = await import("@/lib/gemini");
       const geminiStylePrompt = STYLE_PROMPTS[input.styleId] || STYLE_PROMPTS.modern;
       const geminiPrompt = buildGeminiPrompt(geminiStylePrompt, input.customPrompt);
