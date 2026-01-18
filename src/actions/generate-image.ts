@@ -3,9 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import {
   replicate,
-  INTERIOR_DESIGN_VERSION,
+  FLUX_DEPTH_VERSION,
   buildPrompt,
-  DEFAULT_NEGATIVE_PROMPT,
 } from "@/lib/replicate";
 import { STYLE_PRESETS, type GenerationInsert, type Generation } from "@/types/database";
 import { redirect } from "next/navigation";
@@ -100,19 +99,21 @@ export async function generateImage(input: GenerateImageInput) {
     const useWebhook = appUrl.startsWith("https://");
     const webhookUrl = useWebhook ? `${appUrl}/api/webhooks/replicate` : undefined;
 
-    // Start Replicate prediction
-    console.log("Calling Replicate API...");
-    console.log("Image URL:", input.originalImageUrl);
+    // Start Replicate prediction with Flux Depth Dev
+    console.log("Calling Replicate API (Flux Depth Dev)...");
+    console.log("Control Image URL:", input.originalImageUrl);
+    console.log("Prompt:", fullPrompt);
 
     const prediction = await replicate.predictions.create({
-      version: INTERIOR_DESIGN_VERSION,
+      version: FLUX_DEPTH_VERSION,
       input: {
-        image: input.originalImageUrl,
+        control_image: input.originalImageUrl,
         prompt: fullPrompt,
-        negative_prompt: DEFAULT_NEGATIVE_PROMPT,
-        num_inference_steps: 50,
-        guidance_scale: 15,
-        prompt_strength: 0.8,
+        guidance: 15,
+        num_inference_steps: 28,
+        output_format: "webp",
+        output_quality: 90,
+        megapixels: "1",
       },
       ...(webhookUrl && {
         webhook: webhookUrl,
