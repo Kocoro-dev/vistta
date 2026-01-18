@@ -2,10 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import {
-  replicate,
-  FLUX_DEPTH_VERSION,
-  buildPrompt,
-} from "@/lib/replicate";
+  generateWithGemini,
+  buildGeminiPrompt,
+  STYLE_PROMPTS,
+} from "@/lib/gemini";
 import { STYLE_PRESETS, type GenerationInsert, type Generation } from "@/types/database";
 import { redirect } from "next/navigation";
 import { ALPHA_LIMIT } from "@/lib/constants";
@@ -18,7 +18,7 @@ interface GenerateImageInput {
 }
 
 export async function generateImage(input: GenerateImageInput) {
-  console.log("=== generateImage called ===");
+  console.log("=== generateImage called (Gemini) ===");
   console.log("Input:", JSON.stringify(input, null, 2));
 
   const supabase = await createClient();
@@ -46,7 +46,6 @@ export async function generateImage(input: GenerateImageInput) {
   }
 
   const generationCount = count || 0;
-  const ALPHA_LIMIT = 5;
 
   console.log("Generation count:", generationCount, "/", ALPHA_LIMIT);
 
@@ -66,8 +65,9 @@ export async function generateImage(input: GenerateImageInput) {
 
   console.log("Style found:", style.name);
 
-  // Build the full prompt
-  const fullPrompt = buildPrompt(style.prompt, input.customPrompt);
+  // Build the full prompt using Gemini-specific prompts
+  const stylePrompt = STYLE_PROMPTS[input.styleId] || STYLE_PROMPTS.modern;
+  const fullPrompt = buildGeminiPrompt(stylePrompt, input.customPrompt);
 
   try {
     // Create generation record in database
@@ -77,7 +77,7 @@ export async function generateImage(input: GenerateImageInput) {
       original_image_path: input.originalImagePath,
       prompt: fullPrompt,
       style: input.styleId,
-      status: "pending",
+      status: "processing",
     };
 
     const { data: generation, error: dbError } = await supabase
@@ -94,41 +94,40 @@ export async function generateImage(input: GenerateImageInput) {
     const gen = generation as unknown as Generation;
     console.log("Generation record created:", gen.id);
 
-    // Get the webhook URL (only use if HTTPS - Replicate requires HTTPS)
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const useWebhook = appUrl.startsWith("https://");
-    const webhookUrl = useWebhook ? `${appUrl}/api/webhooks/replicate` : undefined;
+    // Call Gemini via fal.ai - this is synchronous, no webhook needed
+    console.log("Calling Gemini API via fal.ai...");
+    console.log("Image URL:", input.originalImageUrl);
 
-    // Start Replicate prediction with Flux Depth Dev
-    console.log("Calling Replicate API (Flux Depth Dev)...");
-    console.log("Control Image URL:", input.originalImageUrl);
-    console.log("Prompt:", fullPrompt);
-
-    const prediction = await replicate.predictions.create({
-      version: FLUX_DEPTH_VERSION,
-      input: {
-        control_image: input.originalImageUrl,
-        prompt: fullPrompt,
-        guidance: 15,
-        num_inference_steps: 28,
-        output_format: "webp",
-        output_quality: 90,
-        megapixels: "1",
-      },
-      ...(webhookUrl && {
-        webhook: webhookUrl,
-        webhook_events_filter: ["completed"],
-      }),
+    const result = await generateWithGemini({
+      imageUrl: input.originalImageUrl,
+      prompt: fullPrompt,
+      resolution: "1K",
+      outputFormat: "webp",
     });
 
-    console.log("Replicate prediction created:", prediction.id);
+    if (!result.images || result.images.length === 0) {
+      console.error("Gemini returned no images");
+      await supabase
+        .from("generations")
+        .update({
+          status: "failed",
+          error_message: "No se generó ninguna imagen",
+        } as never)
+        .eq("id", gen.id);
 
-    // Update generation with prediction ID
+      return { error: "La generación no produjo ninguna imagen" };
+    }
+
+    const generatedImageUrl = result.images[0].url;
+    console.log("Gemini generation completed:", generatedImageUrl);
+
+    // Update generation with result
     const { error: updateError } = await supabase
       .from("generations")
       .update({
-        replicate_prediction_id: prediction.id,
-        status: "processing",
+        status: "completed",
+        generated_image_url: generatedImageUrl,
+        completed_at: new Date().toISOString(),
       } as never)
       .eq("id", gen.id);
 
@@ -139,16 +138,15 @@ export async function generateImage(input: GenerateImageInput) {
     return {
       success: true,
       generationId: gen.id,
-      predictionId: prediction.id,
+      generatedImageUrl,
     };
   } catch (error) {
-    console.error("Replicate error:", error);
-    // Show more details
+    console.error("Gemini error:", error);
     if (error instanceof Error) {
       console.error("Error message:", error.message);
       console.error("Error stack:", error.stack);
     }
-    return { error: "Failed to start image generation" };
+    return { error: "Error al generar la imagen. Por favor, inténtalo de nuevo." };
   }
 }
 
@@ -177,123 +175,6 @@ export async function getGenerationStatus(generationId: string) {
   const generation = data as unknown as Generation;
 
   return { generation };
-}
-
-// Poll Replicate for prediction status (used when webhooks aren't available)
-export async function pollPredictionStatus(generationId: string) {
-  console.log("=== pollPredictionStatus called ===");
-  console.log("Generation ID:", generationId);
-
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    console.log("Poll: No user found");
-    return { error: "Unauthorized" };
-  }
-
-  // Get the generation record
-  const { data, error } = await supabase
-    .from("generations")
-    .select("*")
-    .eq("id", generationId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (error || !data) {
-    console.log("Poll: Generation not found", error);
-    return { error: "Generation not found" };
-  }
-
-  const generation = data as unknown as Generation;
-  console.log("Poll: Generation status from DB:", generation.status);
-  console.log("Poll: Prediction ID:", generation.replicate_prediction_id);
-
-  // If already completed or failed, return current status
-  if (generation.status === "completed" || generation.status === "failed") {
-    console.log("Poll: Already finished with status:", generation.status);
-    return { generation };
-  }
-
-  // If no prediction ID, something went wrong
-  if (!generation.replicate_prediction_id) {
-    console.log("Poll: No prediction ID found");
-    return { error: "No prediction ID found" };
-  }
-
-  try {
-    // Get prediction status from Replicate
-    console.log("Poll: Checking Replicate status...");
-    const prediction = await replicate.predictions.get(generation.replicate_prediction_id);
-    console.log("Poll: Replicate status:", prediction.status);
-    console.log("Poll: Replicate output:", prediction.output);
-
-    if (prediction.status === "succeeded") {
-      // Get the output URL
-      const outputUrl = Array.isArray(prediction.output)
-        ? prediction.output[0]
-        : prediction.output;
-
-      // Update generation in database
-      const { error: updateError } = await supabase
-        .from("generations")
-        .update({
-          status: "completed",
-          generated_image_url: outputUrl,
-        } as never)
-        .eq("id", generationId);
-
-      if (updateError) {
-        console.error("Update error:", updateError);
-      }
-
-      return {
-        generation: {
-          ...generation,
-          status: "completed" as const,
-          generated_image_url: outputUrl,
-        },
-      };
-    } else if (prediction.status === "failed" || prediction.status === "canceled") {
-      console.log("Poll: Prediction failed or canceled");
-      console.log("Poll: Error:", prediction.error);
-
-      const errorMessage = typeof prediction.error === "string"
-        ? prediction.error
-        : "Error en la generación";
-
-      // Update generation as failed
-      await supabase
-        .from("generations")
-        .update({
-          status: "failed",
-          error_message: errorMessage,
-        } as never)
-        .eq("id", generationId);
-
-      return {
-        generation: {
-          ...generation,
-          status: "failed" as const,
-          error_message: errorMessage,
-        },
-      };
-    }
-
-    // Still processing
-    return {
-      generation: {
-        ...generation,
-        status: "processing" as const,
-      },
-    };
-  } catch (error) {
-    console.error("Poll error:", error);
-    return { error: "Failed to check prediction status" };
-  }
 }
 
 // Get user generation stats

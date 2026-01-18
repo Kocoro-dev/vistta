@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/actions/upload-image";
-import { generateImage, getGenerationStatus, pollPredictionStatus } from "@/actions/generate-image";
+import { generateImage, getGenerationStatus } from "@/actions/generate-image";
 import { UploadZone } from "@/components/upload-zone";
 import { StyleSelector } from "@/components/style-selector";
 import { CompareSlider } from "@/components/compare-slider";
@@ -39,7 +38,7 @@ export default function EditorPage() {
     }
   }, [generationId]);
 
-  // Poll for generation status updates (polls Replicate directly when no webhook)
+  // Check for generation status updates (for loading existing generations)
   useEffect(() => {
     if (!currentGeneration) return;
     if (
@@ -48,9 +47,9 @@ export default function EditorPage() {
     )
       return;
 
+    // Only poll if status is still processing (for backward compatibility)
     const interval = setInterval(async () => {
-      // Use pollPredictionStatus which checks Replicate API directly
-      const result = await pollPredictionStatus(currentGeneration.id);
+      const result = await getGenerationStatus(currentGeneration.id);
       if (result.generation) {
         setCurrentGeneration(result.generation);
         if (result.generation.status === "completed") {
@@ -122,6 +121,7 @@ export default function EditorPage() {
     }
 
     setIsGenerating(true);
+    toast.info("Generando tu diseño. Esto puede tardar unos segundos...");
 
     try {
       const result = await generateImage({
@@ -136,19 +136,21 @@ export default function EditorPage() {
         return;
       }
 
+      // Gemini returns the result immediately (synchronous)
       if (result.success && result.generationId) {
-        toast.info("Generación iniciada. Esto puede tardar unos segundos...");
-        // Load the new generation to start polling
+        // Load the completed generation
         const statusResult = await getGenerationStatus(result.generationId);
         if (statusResult.generation) {
           setCurrentGeneration(statusResult.generation);
           // Update URL without reload
           router.replace(`/editor?id=${result.generationId}`);
+          toast.success("¡Imagen generada con éxito!");
         }
+        setIsGenerating(false);
       }
     } catch (error) {
       console.error("Generate error:", error);
-      toast.error("Error al iniciar la generación");
+      toast.error("Error al generar la imagen");
       setIsGenerating(false);
     }
   };
