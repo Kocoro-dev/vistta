@@ -4,9 +4,9 @@ export const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
-// Interior design model (adirik/interior-design or similar)
-export const INTERIOR_DESIGN_MODEL =
-  "adirik/interior-design:76604baddc85b1b4616e1c6475eca080da339c8875bd4996705571c687d2615a";
+// Interior design model version hash
+export const INTERIOR_DESIGN_VERSION =
+  "76604baddc85b1b4616e1c6475eca080da339c8875bd4996705440484a6eac38";
 
 export interface GenerationInput {
   image: string;

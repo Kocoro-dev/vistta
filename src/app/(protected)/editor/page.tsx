@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { uploadImage } from "@/actions/upload-image";
-import { generateImage, getGenerationStatus } from "@/actions/generate-image";
+import { generateImage, getGenerationStatus, pollPredictionStatus } from "@/actions/generate-image";
 import { UploadZone } from "@/components/upload-zone";
 import { StyleSelector } from "@/components/style-selector";
 import { CompareSlider } from "@/components/compare-slider";
@@ -39,7 +39,7 @@ export default function EditorPage() {
     }
   }, [generationId]);
 
-  // Poll for generation status updates
+  // Poll for generation status updates (polls Replicate directly when no webhook)
   useEffect(() => {
     if (!currentGeneration) return;
     if (
@@ -49,7 +49,8 @@ export default function EditorPage() {
       return;
 
     const interval = setInterval(async () => {
-      const result = await getGenerationStatus(currentGeneration.id);
+      // Use pollPredictionStatus which checks Replicate API directly
+      const result = await pollPredictionStatus(currentGeneration.id);
       if (result.generation) {
         setCurrentGeneration(result.generation);
         if (result.generation.status === "completed") {
