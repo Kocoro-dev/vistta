@@ -23,27 +23,37 @@ export interface GeminiGenerationOutput {
   }>;
 }
 
-// Conservative base prompt - focused on real estate photography enhancement
-// Since Gemini has no strength parameter, we control intensity via prompt language
-const BASE_PROMPT = `You are enhancing a real estate photograph. Your task is to make ONLY VERY SUBTLE improvements.
+// Virtual staging prompt - focused on decluttering and professional presentation
+// Aggressive about removing clutter while preserving room structure
+const BASE_PROMPT = `You are a professional virtual home stager enhancing a real estate photograph for listing.
 
-CRITICAL RULES - NEVER VIOLATE:
-- KEEP the exact same room structure: walls, doors, windows, floor, ceiling
-- KEEP all furniture in the EXACT same positions
-- KEEP the same furniture styles - do not replace with different furniture
-- KEEP the same color palette of walls and major elements
-- DO NOT add any new furniture or decorative items
-- DO NOT remove any major furniture pieces
-- DO NOT change the room layout or dimensions
+PRESERVE (do not change):
+- Room structure: walls, doors, windows, floor, ceiling
+- All furniture pieces and their exact positions
+- Furniture styles - do not replace with different furniture
+- Wall colors and architectural elements
 
-ALLOWED IMPROVEMENTS (subtle only):
-- Enhance lighting: brighter, more natural light, reduce harsh shadows
-- Clean up: remove small clutter, personal items, mess
-- Color enhancement: slightly more vibrant, appealing tones
-- Sharpness: clearer, more professional photo quality
-- Minor straightening: align objects that look crooked
+CLEAN AND REMOVE (be thorough):
+- Remove ALL cables, wires, chargers, power strips
+- Remove ALL personal items: clothes, shoes, bags, toiletries
+- Remove ALL clutter from surfaces: papers, mail, random objects
+- Empty shelves, tables, and furniture tops of non-decorative items
+- Remove items on floors that don't belong (boxes, bags, toys)
+- Clean and improve all surfaces - make them look pristine
 
-The result MUST look like the SAME exact room, just with better photography quality and lighting. A person visiting this room should recognize it immediately.`;
+ENHANCE:
+- Improve lighting: brighter, natural, professional real estate photography quality
+- Reduce harsh shadows, create inviting atmosphere
+- Clean up stains, marks, or imperfections on surfaces
+- Straighten any crooked elements
+
+DECORATIVE STYLING (allowed):
+- You MAY add or change tasteful decorative items on shelves, tables, and surfaces
+- Examples: books, vases, plants, candles, art objects, decorative bowls
+- Keep decorations minimal, elegant, and appropriate for the style
+- Decorations should enhance, not overwhelm the space
+
+The result should look like a professionally staged home ready for a real estate listing - clean, bright, decluttered, with tasteful minimal decoration.`;
 
 export function buildGeminiPrompt(stylePrompt: string, customPrompt?: string): string {
   let fullPrompt = `${BASE_PROMPT}
@@ -59,14 +69,14 @@ Additional note: ${customPrompt}`;
   return fullPrompt;
 }
 
-// Style presets - focused on subtle enhancements only
+// Style presets - define the aesthetic direction for staging
 export const STYLE_PROMPTS: Record<string, string> = {
-  modern: "Enhance with clean, bright natural lighting. Make it feel fresh and contemporary without changing anything in the room.",
-  minimalist: "Brighten the space subtly. Remove visual clutter if any. Keep everything exactly as placed but make it look cleaner.",
-  luxury: "Enhance lighting to feel more premium and welcoming. Slightly richer colors, better shadow balance. Same furniture, elevated atmosphere.",
-  coastal: "Add a subtle bright, airy feeling through lighting enhancement. Fresh atmosphere. No changes to furniture or layout.",
-  industrial: "Enhance contrast slightly and add warmth to the lighting. Keep all raw elements visible. Better lighting only.",
-  traditional: "Warm, inviting lighting enhancement. Create a cozy atmosphere without changing any furniture or layout.",
+  modern: "Style direction: Clean, contemporary aesthetic. Use minimal geometric decorations, a single plant or succulent, neutral-toned books or objects. Bright, crisp lighting with clean whites.",
+  minimalist: "Style direction: Extreme simplicity. Almost no decorations - perhaps one single object per surface maximum. Lots of empty space. Very bright, airy, zen-like atmosphere.",
+  luxury: "Style direction: Premium, sophisticated staging. Use elegant decorative objects like art books, sculptural vases, fresh flowers, high-end candles. Rich warm lighting with golden undertones.",
+  coastal: "Style direction: Light and breezy beach aesthetic. Use natural textures, light woods, white/blue accents, coral or shell decorations, coastal plants. Bright natural daylight feeling.",
+  industrial: "Style direction: Urban loft aesthetic. Use metal accents, exposed elements, dark leather, vintage books, industrial plants like succulents. Warm contrast lighting.",
+  traditional: "Style direction: Classic elegance. Use traditional decorative pieces, elegant vases, classic books, fresh flowers, refined objects. Warm, inviting golden-hour lighting.",
 };
 
 export async function generateWithGemini(
