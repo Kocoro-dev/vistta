@@ -77,7 +77,8 @@ export async function getSectionContent(page: string, section: string): Promise<
     return null;
   }
 
-  return data?.content || null;
+  const result = data as unknown as { content: any } | null;
+  return result?.content || null;
 }
 
 export async function updateSectionContent(
