@@ -94,8 +94,8 @@ export async function updateSectionContent(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("site_content")
+  const { error } = await (supabase
+    .from("site_content") as any)
     .upsert(
       {
         page,
