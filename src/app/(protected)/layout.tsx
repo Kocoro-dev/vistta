@@ -20,7 +20,6 @@ export default async function ProtectedLayout({
     redirect("/login");
   }
 
-  // Get user profile
   const { data } = await supabase
     .from("profiles")
     .select("*")
@@ -30,7 +29,7 @@ export default async function ProtectedLayout({
   const profile = data as unknown as Profile | null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-neutral-50">
       <Header profile={profile} />
       <main>{children}</main>
     </div>

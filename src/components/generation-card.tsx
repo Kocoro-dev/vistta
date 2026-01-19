@@ -4,10 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, AlertCircle, Eye } from "lucide-react";
+import { Loader2, AlertCircle, ArrowUpRight } from "lucide-react";
 import type { Generation } from "@/types/database";
 import { STYLE_PRESETS } from "@/types/database";
 
@@ -27,72 +24,65 @@ export function GenerationCard({ generation }: GenerationCardProps) {
     : generation.original_image_url;
 
   return (
-    <Card className="group overflow-hidden">
-      <CardContent className="p-0">
-        <div className="relative aspect-[4/3]">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={style?.name || "Generation"}
-              fill
-              className="object-cover transition-transform group-hover:scale-105"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-muted flex items-center justify-center">
-              <Skeleton className="w-full h-full" />
+    <div className="group border border-neutral-200 bg-white hover:border-neutral-300 transition-all">
+      <div className="relative aspect-[4/3]">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={style?.name || "Generation"}
+            fill
+            className="object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-neutral-100" />
+        )}
+
+        {/* Status overlay */}
+        {isProcessing && (
+          <div className="absolute inset-0 bg-white/90 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="h-5 w-5 animate-spin text-neutral-400 mx-auto mb-2" />
+              <p className="text-[13px] font-medium text-neutral-600">Generando...</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Status overlay */}
-          {isProcessing && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
-                <p className="text-sm font-medium">Generando...</p>
-              </div>
+        {isFailed && (
+          <div className="absolute inset-0 bg-white/90 flex items-center justify-center">
+            <div className="text-center text-red-600">
+              <AlertCircle className="h-5 w-5 mx-auto mb-2" />
+              <p className="text-[13px] font-medium">Error</p>
             </div>
-          )}
+          </div>
+        )}
 
-          {isFailed && (
-            <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-              <div className="text-center text-destructive">
-                <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-sm font-medium">Error</p>
-              </div>
-            </div>
-          )}
-
-          {/* Hover overlay for completed */}
-          {isCompleted && (
-            <Link
-              href={`/editor?id=${generation.id}`}
-              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-            >
-              <div className="text-white text-center">
-                <Eye className="h-6 w-6 mx-auto mb-1" />
-                <span className="text-sm">Ver detalles</span>
-              </div>
-            </Link>
-          )}
-
-          {/* Style badge */}
-          <Badge
-            variant="secondary"
-            className="absolute top-2 left-2 bg-background/90"
+        {/* Hover overlay for completed */}
+        {isCompleted && (
+          <Link
+            href={`/editor?id=${generation.id}`}
+            className="absolute inset-0 bg-neutral-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
           >
-            {style?.name || generation.style}
-          </Badge>
-        </div>
+            <div className="text-white text-center">
+              <ArrowUpRight className="h-5 w-5 mx-auto mb-1" />
+              <span className="text-[13px] font-medium">Ver detalles</span>
+            </div>
+          </Link>
+        )}
 
-        <div className="p-4">
-          <p className="text-sm text-muted-foreground">
-            {formatDistanceToNow(new Date(generation.created_at), {
-              addSuffix: true,
-              locale: es,
-            })}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        {/* Style badge */}
+        <span className="absolute top-3 left-3 bg-white/90 text-neutral-900 px-2.5 py-1 text-[11px] font-medium tracking-wide border border-neutral-200">
+          {style?.name || generation.style}
+        </span>
+      </div>
+
+      <div className="p-4 border-t border-neutral-100">
+        <p className="text-[13px] text-neutral-500">
+          {formatDistanceToNow(new Date(generation.created_at), {
+            addSuffix: true,
+            locale: es,
+          })}
+        </p>
+      </div>
+    </div>
   );
 }

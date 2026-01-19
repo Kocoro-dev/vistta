@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { FAQItem } from "@/lib/content";
 
-const faqs = [
+// Default FAQs fallback
+const defaultFaqs: FAQItem[] = [
   {
     question: "¿Es legal usar estas fotos en Idealista/Airbnb?",
     answer:
@@ -31,54 +33,53 @@ const faqs = [
   },
 ];
 
-export function FAQ() {
+interface FAQProps {
+  items?: FAQItem[];
+}
+
+export function FAQ({ items = defaultFaqs }: FAQProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <div className="space-y-3">
-      {faqs.map((faq, index) => (
-        <div
-          key={index}
-          className={cn(
-            "rounded-2xl overflow-hidden transition-all duration-300",
-            openIndex === index
-              ? "bg-white shadow-sm border border-gray-200"
-              : "bg-gray-100 hover:bg-gray-200/70"
-          )}
-        >
+    <div className="divide-y divide-neutral-200 border-t border-neutral-200">
+      {items.map((faq, index) => (
+        <div key={index}>
           <button
             onClick={() => setOpenIndex(openIndex === index ? null : index)}
-            className="w-full flex items-center justify-between p-6 text-left"
+            className="w-full flex items-start justify-between py-6 text-left group"
           >
-            <span className="font-semibold text-gray-900 pr-8 text-[16px]">
+            <span className="font-medium text-neutral-900 pr-8 text-[15px] group-hover:text-neutral-600 transition-colors">
               {faq.question}
             </span>
             <div
               className={cn(
-                "h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                "h-6 w-6 border flex items-center justify-center flex-shrink-0 transition-all mt-0.5",
                 openIndex === index
-                  ? "bg-gray-900 text-white rotate-180"
-                  : "bg-white text-gray-400"
+                  ? "bg-neutral-900 border-neutral-900 rotate-45"
+                  : "border-neutral-300"
               )}
             >
               <svg
-                className="w-4 h-4"
+                className={cn(
+                  "w-3 h-3 transition-colors",
+                  openIndex === index ? "text-white" : "text-neutral-400"
+                )}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
                 strokeWidth={2}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
             </div>
           </button>
           <div
             className={cn(
               "overflow-hidden transition-all duration-300",
-              openIndex === index ? "max-h-96" : "max-h-0"
+              openIndex === index ? "max-h-96 pb-6" : "max-h-0"
             )}
           >
-            <p className="px-6 pb-6 text-gray-500 leading-relaxed text-[15px]">
+            <p className="text-neutral-500 leading-relaxed text-[15px] pr-12">
               {faq.answer}
             </p>
           </div>

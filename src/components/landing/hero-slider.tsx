@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface HeroSliderProps {
   beforeImage: string;
@@ -17,6 +21,8 @@ export function HeroSlider({
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const beforeImageRef = useRef<HTMLImageElement>(null);
+  const afterImageRef = useRef<HTMLImageElement>(null);
 
   const handleMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -67,25 +73,55 @@ export function HeroSlider({
     };
   }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove]);
 
+  // Parallax effect on images
+  useEffect(() => {
+    if (!containerRef.current || !beforeImageRef.current || !afterImageRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const images = [beforeImageRef.current, afterImageRef.current];
+
+      images.forEach((img) => {
+        gsap.fromTo(
+          img,
+          { yPercent: -5, scale: 1.1 },
+          {
+            yPercent: 5,
+            scale: 1.1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1.5,
+            },
+          }
+        );
+      });
+    });
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className={cn(
-        "relative aspect-[16/10] w-full overflow-hidden rounded-[24px] select-none shadow-2xl shadow-black/10 border border-black/5",
+        "relative aspect-[16/10] w-full overflow-hidden select-none border border-neutral-200",
         className
       )}
       onMouseDown={handleMouseDown}
       onTouchStart={handleMouseDown}
     >
       {/* After image (background) */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden">
         <img
+          ref={afterImageRef}
           src={afterImage}
           alt="Después"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover will-change-transform"
           draggable={false}
         />
-        <span className="absolute bottom-5 right-5 rounded-full bg-white/90 backdrop-blur-sm px-4 py-2 text-[13px] font-semibold text-gray-900 shadow-lg">
+        <span className="absolute bottom-5 right-5 bg-neutral-900 text-white px-4 py-2 text-[12px] font-medium tracking-wide z-10">
           Después
         </span>
       </div>
@@ -96,25 +132,26 @@ export function HeroSlider({
         style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
         <img
+          ref={beforeImageRef}
           src={beforeImage}
           alt="Antes"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover will-change-transform"
           draggable={false}
         />
-        <span className="absolute bottom-5 left-5 rounded-full bg-gray-900/90 backdrop-blur-sm px-4 py-2 text-[13px] font-semibold text-white shadow-lg">
+        <span className="absolute bottom-5 left-5 bg-white text-neutral-900 px-4 py-2 text-[12px] font-medium tracking-wide border border-neutral-200 z-10">
           Antes
         </span>
       </div>
 
       {/* Slider line */}
       <div
-        className="absolute top-0 bottom-0 w-[3px] bg-white cursor-ew-resize"
-        style={{ left: `${sliderPosition}%`, transform: "translateX(-50%)" }}
+        className="absolute top-0 bottom-0 w-px bg-white cursor-ew-resize z-20"
+        style={{ left: `${sliderPosition}%` }}
       >
         {/* Handle */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-white shadow-xl flex items-center justify-center cursor-ew-resize border-2 border-gray-100">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-12 w-12 bg-white border border-neutral-200 flex items-center justify-center cursor-ew-resize shadow-lg">
           <svg
-            className="w-5 h-5 text-gray-400"
+            className="w-4 h-4 text-neutral-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -126,7 +163,7 @@ export function HeroSlider({
       </div>
 
       {/* Floating instruction */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm text-gray-600 text-[13px] px-4 py-2 rounded-full font-medium shadow-lg pointer-events-none">
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 bg-white text-neutral-600 text-[12px] px-4 py-2 font-medium border border-neutral-200 pointer-events-none z-20">
         <span className="flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
 import { GenerationCard } from "@/components/generation-card";
-import { Plus, ImageIcon, Sparkles, AlertCircle, Infinity } from "lucide-react";
+import { Plus, ImageIcon } from "lucide-react";
 import type { Generation } from "@/types/database";
 import { ALPHA_LIMIT, UNLIMITED_USERS } from "@/lib/constants";
 
@@ -11,7 +10,6 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   const isUnlimited = user?.email && UNLIMITED_USERS.includes(user.email);
 
@@ -26,35 +24,30 @@ export default async function DashboardPage() {
   const limitReached = !isUnlimited && remaining === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12">
         {/* Alpha Banner */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/50 rounded-2xl p-5 mb-8">
+        <div className="border border-neutral-200 bg-white p-6 mb-12">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="h-5 w-5 text-amber-600" />
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-label text-orange-600">Alpha</span>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 text-[15px]">
-                  Versión Alpha
-                </h3>
-                <p className="text-[14px] text-gray-600 mt-0.5">
-                  Estás probando VISTTA en acceso anticipado. Limitado a{" "}
-                  <span className="font-semibold">{ALPHA_LIMIT} imágenes</span> gratuitas.
-                </p>
-              </div>
+              <p className="text-[14px] text-neutral-600">
+                Versión de acceso anticipado. Limitado a{" "}
+                <span className="font-medium text-neutral-900">{ALPHA_LIMIT} imágenes</span> gratuitas.
+              </p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-white rounded-xl px-4 py-2 border border-amber-200/50">
-                <div className="text-[13px] text-gray-500">
-                  {isUnlimited ? "Imágenes generadas" : "Imágenes restantes"}
+            <div className="flex items-center gap-6">
+              <div>
+                <div className="text-[13px] text-neutral-500">
+                  {isUnlimited ? "Generadas" : "Restantes"}
                 </div>
-                <div className="text-[20px] font-semibold text-gray-900">
+                <div className="text-[24px] font-medium text-neutral-900 text-display">
                   {isUnlimited ? (
-                    <>{generationCount} <Infinity className="inline h-5 w-5 text-gray-400" /></>
+                    <>{generationCount}<span className="text-[14px] text-neutral-400 font-normal ml-1">∞</span></>
                   ) : (
-                    <>{remaining} <span className="text-[14px] text-gray-400 font-normal">/ {ALPHA_LIMIT}</span></>
+                    <>{remaining}<span className="text-[14px] text-neutral-400 font-normal ml-1">/ {ALPHA_LIMIT}</span></>
                   )}
                 </div>
               </div>
@@ -63,32 +56,26 @@ export default async function DashboardPage() {
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-end justify-between mb-12">
           <div>
-            <h1 className="text-[28px] font-semibold text-gray-900 tracking-tight">
+            <span className="text-label text-neutral-400 mb-4 block">Galería</span>
+            <h1 className="text-[clamp(1.75rem,3vw,2.5rem)] font-medium text-neutral-900 text-editorial leading-[1.1]">
               Mis Diseños
             </h1>
-            <p className="text-[15px] text-gray-500 mt-1">
-              Tus transformaciones de espacios con IA
-            </p>
           </div>
-          {!limitReached ? (
-            <Link href="/editor">
-              <Button className="bg-gray-900 hover:bg-gray-800 rounded-xl h-11 px-5">
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Diseño
-              </Button>
+          {!limitReached && (
+            <Link
+              href="/editor"
+              className="inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-5 py-3 text-[14px] font-medium transition-all"
+            >
+              <Plus className="h-4 w-4" />
+              Nuevo Diseño
             </Link>
-          ) : (
-            <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-xl">
-              <AlertCircle className="h-4 w-4" />
-              <span className="text-[14px] font-medium">Límite alcanzado</span>
-            </div>
           )}
         </div>
 
         {generations.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {generations.map((generation) => (
               <GenerationCard key={generation.id} generation={generation} />
             ))}
@@ -103,22 +90,22 @@ export default async function DashboardPage() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="h-20 w-20 rounded-2xl bg-gray-100 flex items-center justify-center mb-6">
-        <ImageIcon className="h-10 w-10 text-gray-400" />
+    <div className="flex flex-col items-center justify-center py-32 text-center">
+      <div className="h-16 w-16 border border-neutral-200 flex items-center justify-center mb-8">
+        <ImageIcon className="h-6 w-6 text-neutral-400" />
       </div>
-      <h2 className="text-[20px] font-semibold text-gray-900 mb-2">
-        No hay diseños todavía
+      <h2 className="text-[20px] font-medium text-neutral-900 mb-3">
+        Sin diseños todavía
       </h2>
-      <p className="text-[15px] text-gray-500 mb-6 max-w-sm">
-        Sube una foto de una habitación y transforma su estilo con inteligencia
-        artificial.
+      <p className="text-[15px] text-neutral-500 mb-8 max-w-sm">
+        Sube una foto de una habitación y transforma su estilo con inteligencia artificial.
       </p>
-      <Link href="/editor">
-        <Button size="lg" className="bg-gray-900 hover:bg-gray-800 rounded-xl h-12 px-6">
-          <Plus className="h-4 w-4 mr-2" />
-          Crear primer diseño
-        </Button>
+      <Link
+        href="/editor"
+        className="inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-6 py-3.5 text-[14px] font-medium transition-all"
+      >
+        <Plus className="h-4 w-4" />
+        Crear primer diseño
       </Link>
     </div>
   );

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
@@ -11,7 +10,6 @@ export default function LoginPage() {
   const handleOAuthLogin = async (provider: "google" | "github") => {
     setIsLoading(provider);
     try {
-      // Dynamically import to avoid build-time issues
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
@@ -28,50 +26,97 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center space-y-2">
-          <CardTitle className="text-3xl font-bold tracking-tight">
+    <div className="min-h-screen bg-white flex">
+      {/* Left panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-neutral-900 text-white p-12 flex-col justify-between relative overflow-hidden">
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
+            backgroundSize: '64px 64px'
+          }} />
+        </div>
+
+        <div className="relative z-10">
+          <Link href="/" className="text-[15px] font-medium tracking-tight">
             VISTTA
-          </CardTitle>
-          <CardDescription className="text-base">
-            Transforma espacios con inteligencia artificial
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button
-            variant="outline"
-            className="w-full h-12 text-base"
-            onClick={() => handleOAuthLogin("google")}
-            disabled={isLoading !== null}
-          >
-            {isLoading === "google" ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <GoogleIcon className="mr-2 h-5 w-5" />
-            )}
-            Continuar con Google
-          </Button>
+          </Link>
+        </div>
 
-          <Button
-            variant="outline"
-            className="w-full h-12 text-base"
-            onClick={() => handleOAuthLogin("github")}
-            disabled={isLoading !== null}
-          >
-            {isLoading === "github" ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <GithubIcon className="mr-2 h-5 w-5" />
-            )}
-            Continuar con GitHub
-          </Button>
-
-          <p className="text-center text-sm text-muted-foreground pt-4">
-            Al continuar, aceptas nuestros términos de servicio y política de privacidad.
+        <div className="relative z-10 max-w-md">
+          <h1 className="text-[clamp(2rem,4vw,3.5rem)] font-medium text-display leading-[0.95] mb-6">
+            Transforma espacios con IA
+          </h1>
+          <p className="text-[17px] text-neutral-400 leading-relaxed">
+            Virtual staging profesional para agentes inmobiliarios y gestores de propiedades.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        <div className="relative z-10">
+          <p className="text-[13px] text-neutral-600">
+            © {new Date().getFullYear()} VISTTA
+          </p>
+        </div>
+      </div>
+
+      {/* Right panel - Login form */}
+      <div className="flex-1 flex items-center justify-center p-8 lg:p-12">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <Link href="/" className="lg:hidden text-[15px] font-medium tracking-tight text-neutral-900 mb-12 block">
+            VISTTA
+          </Link>
+
+          <div className="mb-10">
+            <span className="text-label text-neutral-400 mb-4 block">Acceso</span>
+            <h2 className="text-[28px] font-medium text-neutral-900 text-editorial leading-[1.1]">
+              Continuar con tu cuenta
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => handleOAuthLogin("google")}
+              disabled={isLoading !== null}
+              className="w-full flex items-center justify-center gap-3 border border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading === "google" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <GoogleIcon className="h-4 w-4" />
+              )}
+              Continuar con Google
+            </button>
+
+            <button
+              onClick={() => handleOAuthLogin("github")}
+              disabled={isLoading !== null}
+              className="w-full flex items-center justify-center gap-3 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading === "github" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <GithubIcon className="h-4 w-4" />
+              )}
+              Continuar con GitHub
+            </button>
+          </div>
+
+          <div className="mt-8 pt-8 border-t border-neutral-100">
+            <p className="text-[13px] text-neutral-500 leading-relaxed">
+              Al continuar, aceptas nuestros{" "}
+              <Link href="#" className="text-neutral-900 hover:underline">
+                términos de servicio
+              </Link>{" "}
+              y{" "}
+              <Link href="#" className="text-neutral-900 hover:underline">
+                política de privacidad
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

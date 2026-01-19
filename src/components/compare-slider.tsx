@@ -23,17 +23,14 @@ export function CompareSlider({
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleMove = useCallback(
-    (clientX: number) => {
-      if (!containerRef.current) return;
+  const handleMove = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const x = clientX - rect.left;
-      const percentage = Math.min(Math.max((x / rect.width) * 100, 0), 100);
-      setSliderPosition(percentage);
-    },
-    []
-  );
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const percentage = Math.min(Math.max((x / rect.width) * 100, 0), 100);
+    setSliderPosition(percentage);
+  }, []);
 
   const handleMouseDown = useCallback(() => {
     setIsDragging(true);
@@ -79,7 +76,7 @@ export function CompareSlider({
     <div
       ref={containerRef}
       className={cn(
-        "relative aspect-[4/3] w-full overflow-hidden rounded-xl select-none",
+        "relative aspect-[4/3] w-full overflow-hidden select-none border border-neutral-200",
         className
       )}
       onMouseDown={handleMouseDown}
@@ -94,7 +91,7 @@ export function CompareSlider({
           className="object-cover"
           draggable={false}
         />
-        <span className="absolute bottom-4 right-4 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white">
+        <span className="absolute bottom-4 right-4 bg-neutral-900 text-white px-3 py-1.5 text-[12px] font-medium tracking-wide">
           {afterLabel}
         </span>
       </div>
@@ -111,21 +108,21 @@ export function CompareSlider({
           className="object-cover"
           draggable={false}
         />
-        <span className="absolute bottom-4 left-4 rounded-md bg-black/70 px-2 py-1 text-xs font-medium text-white">
+        <span className="absolute bottom-4 left-4 bg-white text-neutral-900 px-3 py-1.5 text-[12px] font-medium tracking-wide border border-neutral-200">
           {beforeLabel}
         </span>
       </div>
 
       {/* Slider line */}
       <div
-        className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg cursor-ew-resize"
+        className="absolute top-0 bottom-0 w-px bg-white cursor-ew-resize"
         style={{ left: `${sliderPosition}%` }}
       >
         {/* Handle */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white shadow-lg flex items-center justify-center cursor-ew-resize">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 bg-white border border-neutral-200 flex items-center justify-center cursor-ew-resize">
           <div className="flex gap-0.5">
-            <div className="w-0.5 h-4 bg-gray-400 rounded-full" />
-            <div className="w-0.5 h-4 bg-gray-400 rounded-full" />
+            <div className="w-px h-3 bg-neutral-400" />
+            <div className="w-px h-3 bg-neutral-400" />
           </div>
         </div>
       </div>

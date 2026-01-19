@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +9,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User, Plus } from "lucide-react";
 import type { Profile } from "@/types/database";
 
@@ -36,16 +34,16 @@ export function Header({ profile }: HeaderProps) {
     .toUpperCase() || profile?.email?.[0]?.toUpperCase() || "U";
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/dashboard" className="text-xl font-bold tracking-tight">
+    <header className="border-b border-neutral-200 bg-white">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-12">
+          <Link href="/dashboard" className="text-[15px] font-medium tracking-tight text-neutral-900">
             VISTTA
           </Link>
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-8">
             <Link
               href="/dashboard"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
             >
               Mis Diseños
             </Link>
@@ -53,53 +51,57 @@ export function Header({ profile }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/editor">
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Diseño
-            </Button>
+          <Link
+            href="/editor"
+            className="hidden sm:inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 text-[13px] font-medium transition-all"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Nuevo
           </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage
-                    src={profile?.avatar_url || undefined}
+              <button className="h-8 w-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-[13px] font-medium text-neutral-700 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
+                {profile?.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
                     alt={profile?.full_name || "Usuario"}
+                    className="h-8 w-8 rounded-full object-cover"
                   />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-              </Button>
+                ) : (
+                  initials
+                )}
+              </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex flex-col space-y-0.5 leading-none">
-                  {profile?.full_name && (
-                    <p className="font-medium text-sm">{profile.full_name}</p>
-                  )}
-                  {profile?.email && (
-                    <p className="text-xs text-muted-foreground">
-                      {profile.email}
-                    </p>
-                  )}
-                </div>
+              <div className="px-3 py-3 border-b border-neutral-100">
+                {profile?.full_name && (
+                  <p className="font-medium text-[14px] text-neutral-900">{profile.full_name}</p>
+                )}
+                {profile?.email && (
+                  <p className="text-[13px] text-neutral-500 mt-0.5">
+                    {profile.email}
+                  </p>
+                )}
+              </div>
+              <div className="py-1">
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="cursor-pointer flex items-center gap-2 px-3 py-2">
+                    <User className="h-4 w-4 text-neutral-400" />
+                    <span className="text-[14px]">Mi Cuenta</span>
+                  </Link>
+                </DropdownMenuItem>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/dashboard" className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  Mi Cuenta
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="cursor-pointer text-destructive focus:text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Cerrar Sesión
-              </DropdownMenuItem>
+              <div className="py-1">
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer flex items-center gap-2 px-3 py-2 text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="text-[14px]">Cerrar Sesión</span>
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

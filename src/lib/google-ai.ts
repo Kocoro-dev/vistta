@@ -108,13 +108,29 @@ export async function generateWithGoogleAI(
   });
 
   console.log("Google AI response received");
+  console.log("Response candidates:", response.candidates?.length || 0);
+
+  // Check if response was blocked
+  const candidate = response.candidates?.[0];
+  if (!candidate) {
+    console.log("Full response:", JSON.stringify(response, null, 2));
+    throw new Error("No candidates in Google AI response - content may have been blocked");
+  }
+
+  // Log finish reason but don't fail immediately - try to extract image first
+  if (candidate.finishReason) {
+    console.log("Finish reason:", candidate.finishReason);
+  }
 
   // Extract the generated image from response
-  const parts = response.candidates?.[0]?.content?.parts;
+  const parts = candidate.content?.parts;
 
-  if (!parts) {
+  if (!parts || parts.length === 0) {
+    console.log("Candidate content:", JSON.stringify(candidate.content, null, 2));
     throw new Error("No response parts from Google AI");
   }
+
+  console.log("Parts found:", parts.length);
 
   // Find the image part in the response
   for (const part of parts) {
@@ -123,10 +139,20 @@ export async function generateWithGoogleAI(
       const outputMimeType = part.inlineData.mimeType || "image/png";
       const dataUrl = `data:${outputMimeType};base64,${part.inlineData.data}`;
 
-      console.log("Google AI generation completed");
+      console.log("Google AI generation completed, mimeType:", outputMimeType);
       return { imageUrl: dataUrl };
+    }
+    if (part.text) {
+      console.log("Text response:", part.text);
     }
   }
 
-  throw new Error("No image in Google AI response");
+  console.log("Parts content:", JSON.stringify(parts, null, 2));
+
+  // Provide specific error for IMAGE_RECITATION
+  if (candidate.finishReason === "IMAGE_RECITATION") {
+    throw new Error("La imagen no pudo generarse por restricciones de copyright. Prueba con otra imagen.");
+  }
+
+  throw new Error("No image in Google AI response - only text returned");
 }
