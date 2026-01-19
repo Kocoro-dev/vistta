@@ -25,10 +25,12 @@ export async function getContent<T = any>(page: string, section: string): Promis
       return null;
     }
 
-    // Store in cache
-    contentCache.set(cacheKey, data.content);
+    const result = data as unknown as { content: any };
 
-    return data.content as T;
+    // Store in cache
+    contentCache.set(cacheKey, result.content);
+
+    return result.content as T;
   } catch {
     return null;
   }
@@ -48,8 +50,9 @@ export async function getPageContent<T = Record<string, any>>(page: string): Pro
       return {} as T;
     }
 
+    const items = data as unknown as Array<{ section: string; content: any }>;
     const result: Record<string, any> = {};
-    data.forEach((item) => {
+    items.forEach((item) => {
       result[item.section] = item.content;
     });
 
