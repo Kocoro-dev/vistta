@@ -9,10 +9,7 @@ interface MediaFile {
   name: string;
   id: string;
   created_at: string;
-  metadata: {
-    size: number;
-    mimetype: string;
-  };
+  metadata?: Record<string, any>;
   url: string;
 }
 
@@ -54,7 +51,10 @@ export default function AdminMediaPage() {
               .getPublicUrl(file.name);
 
             return {
-              ...file,
+              name: file.name,
+              id: file.id,
+              created_at: file.created_at,
+              metadata: file.metadata,
               url: urlData.publicUrl,
             } as MediaFile;
           })
@@ -234,7 +234,7 @@ export default function AdminMediaPage() {
                     Tamaño
                   </label>
                   <p className="text-[13px] text-white">
-                    {formatFileSize(selectedFile.metadata.size)}
+                    {formatFileSize(selectedFile.metadata?.size || 0)}
                   </p>
                 </div>
               )}
