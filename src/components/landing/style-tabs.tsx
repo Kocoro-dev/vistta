@@ -8,25 +8,31 @@ import { Style } from "@/lib/content";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// Default styles fallback
+// Updated default styles with Linear-style names
 const defaultStyles: Style[] = [
+  {
+    id: "modern",
+    name: "Moderno",
+    description: "Líneas limpias y acabados contemporáneos. El favorito del mercado premium.",
+    image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=80",
+  },
   {
     id: "nordic",
     name: "Nórdico",
-    description: "Limpio y funcional. Ideal para el comprador europeo.",
+    description: "Funcionalidad escandinava. Maderas claras, textiles naturales, luz difusa.",
     image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1200&q=80",
   },
   {
-    id: "boho",
-    name: "Boho-Chic",
-    description: "Cálido y acogedor. Perfecto para Airbnb.",
-    image: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=1200&q=80",
+    id: "industrial",
+    name: "Industrial",
+    description: "Ladrillo visto, metal negro, hormigón pulido. Para lofts y espacios diáfanos.",
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80",
   },
   {
-    id: "minimal",
-    name: "Minimalista",
-    description: "Espacioso y moderno. Para pisos urbanos.",
-    image: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=80",
+    id: "mediterranean",
+    name: "Mediterráneo",
+    description: "Blancos cálidos, tonos tierra, cerámica artesanal. Perfecto para costa y zonas turísticas.",
+    image: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=1200&q=80",
   },
 ];
 
@@ -77,17 +83,17 @@ export function StyleTabs({ styles = defaultStyles }: StyleTabsProps) {
 
   return (
     <div className="space-y-8">
-      {/* Tabs */}
+      {/* Tabs - pill style */}
       <div className="flex flex-wrap gap-2">
         {styles.map((style) => (
           <button
             key={style.id}
             onClick={() => setActiveStyle(style)}
             className={cn(
-              "px-5 py-2.5 text-[13px] font-medium transition-all border",
+              "px-6 py-3 text-[13px] font-medium transition-all duration-300",
               activeStyle.id === style.id
-                ? "bg-neutral-900 text-white border-neutral-900"
-                : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300"
+                ? "bg-neutral-900 text-white"
+                : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
             )}
           >
             {style.name}
@@ -97,7 +103,13 @@ export function StyleTabs({ styles = defaultStyles }: StyleTabsProps) {
 
       {/* Image and description */}
       <div ref={containerRef} className="relative">
-        <div className="aspect-[16/9] overflow-hidden border border-neutral-200">
+        <div
+          className={cn(
+            "aspect-[16/9] overflow-hidden",
+            "border border-neutral-200/50",
+            "shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_2px_4px_rgba(0,0,0,0.02),0_12px_24px_rgba(0,0,0,0.03)]"
+          )}
+        >
           <img
             ref={imageRef}
             src={activeStyle.image}
@@ -105,15 +117,19 @@ export function StyleTabs({ styles = defaultStyles }: StyleTabsProps) {
             className="w-full h-full object-cover will-change-transform"
           />
         </div>
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-neutral-900/80 via-neutral-900/40 to-transparent p-8 pt-24">
-          <div className="flex items-end justify-between">
+
+        {/* Info overlay - refined positioning */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-neutral-900/90 via-neutral-900/50 to-transparent p-8 pt-32">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h4 className="text-white text-[20px] font-medium mb-2">
+              <h4 className="text-white text-[22px] font-medium mb-2 text-editorial">
                 Estilo {activeStyle.name}
               </h4>
-              <p className="text-white/70 text-[14px]">{activeStyle.description}</p>
+              <p className="text-white/70 text-[14px] max-w-md">
+                {activeStyle.description}
+              </p>
             </div>
-            <span className="text-label text-white/50">
+            <span className="text-label text-white/40">
               Generado con IA
             </span>
           </div>

@@ -2,13 +2,25 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { HeroSlider } from "@/components/landing/hero-slider";
-import { StyleTabs } from "@/components/landing/style-tabs";
-import { FAQ } from "@/components/landing/faq";
 import { LandingContent } from "@/lib/content";
+
+// Components
+import { HeroBadge } from "@/components/landing/hero-badge";
+import { FacePile } from "@/components/landing/face-pile";
+import { HeroSlider } from "@/components/landing/hero-slider";
+import { TrustLogos } from "@/components/landing/trust-logos";
+import { FeatureFork } from "@/components/landing/feature-fork";
+import { BentoGrid } from "@/components/landing/bento-grid";
+import { StatsSection } from "@/components/landing/stats-section";
+import { StyleTabs } from "@/components/landing/style-tabs";
+import { SocialProofSplit } from "@/components/landing/social-proof-split";
+import { PricingCards } from "@/components/landing/pricing-cards";
+import { ComparisonTable } from "@/components/landing/comparison-table";
+import { FAQ } from "@/components/landing/faq";
+import { LiveActivityToast } from "@/components/landing/live-activity-toast";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,11 +34,7 @@ export function LandingPage({ content }: LandingPageProps) {
   const heroSubtitleRef = useRef<HTMLParagraphElement>(null);
   const heroCTARef = useRef<HTMLDivElement>(null);
   const heroSliderRef = useRef<HTMLDivElement>(null);
-  const problemRef = useRef<HTMLElement>(null);
-  const stepsRef = useRef<HTMLElement>(null);
   const stylesRef = useRef<HTMLElement>(null);
-  const testimonialRef = useRef<HTMLElement>(null);
-  const pricingRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -36,15 +44,15 @@ export function LandingPage({ content }: LandingPageProps) {
 
       heroTl
         .fromTo(
-          ".hero-label",
+          ".hero-badge",
           { opacity: 0, y: 20 },
-          { opacity: 1, y: 0, duration: 0.8 }
+          { opacity: 1, y: 0, duration: 0.6 }
         )
         .fromTo(
           ".hero-title-line",
           { opacity: 0, y: 80, rotateX: -40 },
           { opacity: 1, y: 0, rotateX: 0, duration: 1.2, stagger: 0.15 },
-          "-=0.4"
+          "-=0.3"
         )
         .fromTo(
           heroSubtitleRef.current,
@@ -53,10 +61,16 @@ export function LandingPage({ content }: LandingPageProps) {
           "-=0.6"
         )
         .fromTo(
+          ".hero-face-pile",
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.6 },
+          "-=0.4"
+        )
+        .fromTo(
           ".hero-cta-btn",
           { opacity: 0, y: 20 },
           { opacity: 1, y: 0, duration: 0.6, stagger: 0.1 },
-          "-=0.4"
+          "-=0.3"
         )
         .fromTo(
           heroSliderRef.current,
@@ -64,88 +78,6 @@ export function LandingPage({ content }: LandingPageProps) {
           { opacity: 1, y: 0, scale: 1, duration: 1.2 },
           "-=0.3"
         );
-
-      // Trust logos animation
-      gsap.fromTo(
-        ".trust-item",
-        { opacity: 0, y: 20 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          scrollTrigger: {
-            trigger: ".trust-section",
-            start: "top 85%",
-          },
-        }
-      );
-
-      // Problem section - cards stagger in
-      gsap.fromTo(
-        ".problem-card",
-        { opacity: 0, y: 60, scale: 0.95 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          stagger: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: problemRef.current,
-            start: "top 70%",
-          },
-        }
-      );
-
-      // Problem text reveal
-      gsap.fromTo(
-        ".problem-text",
-        { opacity: 0, x: -40 },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.8,
-          stagger: 0.1,
-          scrollTrigger: {
-            trigger: problemRef.current,
-            start: "top 75%",
-          },
-        }
-      );
-
-      // Steps section - numbers scale up
-      gsap.fromTo(
-        ".step-number",
-        { opacity: 0, scale: 0.5 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1,
-          stagger: 0.2,
-          ease: "elastic.out(1, 0.5)",
-          scrollTrigger: {
-            trigger: stepsRef.current,
-            start: "top 65%",
-          },
-        }
-      );
-
-      gsap.fromTo(
-        ".step-content",
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.15,
-          scrollTrigger: {
-            trigger: stepsRef.current,
-            start: "top 60%",
-          },
-        }
-      );
 
       // Styles section parallax
       gsap.fromTo(
@@ -158,40 +90,6 @@ export function LandingPage({ content }: LandingPageProps) {
           scrollTrigger: {
             trigger: stylesRef.current,
             start: "top 75%",
-          },
-        }
-      );
-
-      // Testimonial section - quote reveal
-      gsap.fromTo(
-        ".testimonial-quote",
-        { opacity: 0, scale: 0.9 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 1.2,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: testimonialRef.current,
-            start: "top 70%",
-          },
-        }
-      );
-
-      // Pricing cards
-      gsap.fromTo(
-        ".pricing-card",
-        { opacity: 0, y: 80, rotateY: -5 },
-        {
-          opacity: 1,
-          y: 0,
-          rotateY: 0,
-          duration: 0.8,
-          stagger: 0.2,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: pricingRef.current,
-            start: "top 70%",
           },
         }
       );
@@ -260,18 +158,16 @@ export function LandingPage({ content }: LandingPageProps) {
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* 1. Hero Section */}
       <section ref={heroRef} className="pt-32 pb-24 px-6 lg:px-12 min-h-screen flex flex-col justify-center">
         <div className="max-w-[1400px] mx-auto w-full">
-          {/* Label */}
-          <div className="mb-8">
-            <span className="hero-label text-label text-neutral-500">
-              {content.hero.label}
-            </span>
+          {/* Badge */}
+          <div className="hero-badge mb-8">
+            <HeroBadge text={content.heroBadge.text} />
           </div>
 
           {/* Main headline */}
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 mb-16">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 mb-12">
             <div className="lg:col-span-8" style={{ perspective: "1000px" }}>
               <h1 ref={heroTitleRef} className="text-[clamp(2.5rem,6vw,5.5rem)] font-medium text-neutral-900 text-display leading-[0.95]">
                 <span className="hero-title-line block">{content.hero.title_line1}</span>
@@ -279,9 +175,19 @@ export function LandingPage({ content }: LandingPageProps) {
               </h1>
             </div>
             <div className="lg:col-span-4 flex flex-col justify-end">
-              <p ref={heroSubtitleRef} className="text-[17px] text-neutral-600 leading-relaxed mb-8">
+              <p ref={heroSubtitleRef} className="text-[17px] text-neutral-600 leading-relaxed mb-6">
                 {content.hero.description}
               </p>
+
+              {/* Face Pile */}
+              <div className="hero-face-pile mb-8">
+                <FacePile
+                  count={content.facePile.count}
+                  suffix={content.facePile.suffix}
+                />
+              </div>
+
+              {/* CTAs */}
               <div ref={heroCTARef} className="flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/login"
@@ -310,102 +216,19 @@ export function LandingPage({ content }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Trust indicators */}
-      <section className="trust-section py-12 px-6 lg:px-12 border-y border-neutral-100">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-4">
-            <span className="trust-item text-label text-neutral-400">{content.trust.label}</span>
-            {content.trust.logos.map((logo) => (
-              <span key={logo} className="trust-item text-[18px] font-medium text-neutral-300 tracking-tight">
-                {logo}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 2. Trust Logos */}
+      <TrustLogos label={content.trust.label} logos={content.trust.logos} />
 
-      {/* Problem/Solution Section */}
-      <section ref={problemRef} className="py-32 px-6 lg:px-12">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
-            {/* Left column */}
-            <div className="lg:col-span-5">
-              <span className="problem-text text-label text-neutral-400 mb-6 block">{content.problem.label}</span>
-              <h2 className="problem-text text-[clamp(2rem,4vw,3rem)] font-medium text-neutral-900 text-editorial leading-[1.1] mb-6">
-                {content.problem.title}
-              </h2>
-              <p className="problem-text text-[17px] text-neutral-500 leading-relaxed">
-                {content.problem.description}
-              </p>
-            </div>
+      {/* 3. Feature Fork */}
+      <FeatureFork content={content.fork} />
 
-            {/* Right column - Cards */}
-            <div className="lg:col-span-7 space-y-4">
-              {content.problem.cards.map((card, i) => (
-                <div key={i} className="problem-card group p-8 border border-neutral-200 hover:border-neutral-300 transition-all duration-500 hover:-translate-y-1">
-                  <div className="flex items-start justify-between mb-4">
-                    <span className="text-[32px] font-medium text-neutral-200">{card.number}</span>
-                    <ArrowUpRight className="h-5 w-5 text-neutral-300 group-hover:text-neutral-900 group-hover:rotate-45 transition-all duration-300" />
-                  </div>
-                  <h3 className="text-[20px] font-medium text-neutral-900 mb-2">
-                    {card.title}
-                  </h3>
-                  <p className="text-[15px] text-neutral-500 leading-relaxed">
-                    {card.description}
-                  </p>
-                </div>
-              ))}
+      {/* 4. Bento Grid */}
+      <BentoGrid content={content.bento} />
 
-              <div className="problem-card group p-8 bg-neutral-900 text-white transition-all duration-500 hover:-translate-y-1">
-                <div className="flex items-start justify-between mb-4">
-                  <span className="text-[32px] font-medium text-neutral-600">→</span>
-                  <span className="text-label text-orange-500">{content.problem.solution.label}</span>
-                </div>
-                <h3 className="text-[20px] font-medium mb-2">
-                  {content.problem.solution.title}
-                </h3>
-                <p className="text-[15px] text-neutral-400 leading-relaxed">
-                  {content.problem.solution.description}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 5. Stats Section */}
+      <StatsSection content={content.stats} />
 
-      {/* How it Works */}
-      <section ref={stepsRef} className="py-32 px-6 lg:px-12 bg-neutral-50">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="max-w-xl mb-20">
-            <span className="text-label text-neutral-400 mb-6 block">{content.steps.label}</span>
-            <h2 className="text-[clamp(2rem,4vw,3rem)] font-medium text-neutral-900 text-editorial leading-[1.1]">
-              {content.steps.title_line1}
-              <br />
-              {content.steps.title_line2}
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-px bg-neutral-200">
-            {content.steps.steps.map((step, i) => (
-              <div key={i} className="bg-neutral-50 p-8 lg:p-12">
-                <span className="step-number text-[72px] lg:text-[96px] font-medium text-neutral-200 text-display leading-none block">
-                  {step.number}
-                </span>
-                <div className="step-content">
-                  <h3 className="text-[20px] font-medium text-neutral-900 mt-8 mb-3">
-                    {step.title}
-                  </h3>
-                  <p className="text-[15px] text-neutral-500 leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Styles Section */}
+      {/* 6. Style Tabs */}
       <section ref={stylesRef} className="py-32 px-6 lg:px-12">
         <div className="max-w-[1400px] mx-auto">
           <div className="styles-header grid lg:grid-cols-12 gap-12 mb-16">
@@ -426,106 +249,17 @@ export function LandingPage({ content }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Testimonial */}
-      <section ref={testimonialRef} className="py-32 px-6 lg:px-12 bg-neutral-900 text-white">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="testimonial-quote max-w-4xl">
-            <span className="text-label text-neutral-500 mb-12 block">{content.testimonial.label}</span>
-            <blockquote className="text-[clamp(1.5rem,3vw,2.25rem)] font-medium leading-[1.3] text-editorial mb-12">
-              &quot;{content.testimonial.quote}
-              <span className="text-orange-500">{content.testimonial.highlight}</span>&quot;
-            </blockquote>
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 bg-neutral-800 rounded-full overflow-hidden">
-                {content.testimonial.author_image && (
-                  <img
-                    src={content.testimonial.author_image}
-                    alt={content.testimonial.author_name}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-              </div>
-              <div>
-                <p className="font-medium text-[15px]">{content.testimonial.author_name}</p>
-                <p className="text-[14px] text-neutral-500">{content.testimonial.author_role}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 7. Social Proof Split */}
+      <SocialProofSplit content={content.socialProof} />
 
-      {/* Pricing */}
-      <section ref={pricingRef} className="py-32 px-6 lg:px-12">
-        <div className="max-w-[1400px] mx-auto">
-          <div className="max-w-xl mb-20">
-            <span className="text-label text-neutral-400 mb-6 block">{content.pricing.label}</span>
-            <h2 className="text-[clamp(2rem,4vw,3rem)] font-medium text-neutral-900 text-editorial leading-[1.1]">
-              {content.pricing.title}
-            </h2>
-          </div>
+      {/* 8. Reality Check Comparison */}
+      <ComparisonTable />
 
-          <div className="grid md:grid-cols-2 gap-px bg-neutral-200 max-w-4xl" style={{ perspective: "1000px" }}>
-            {content.pricing.plans.map((plan, i) => (
-              <div
-                key={i}
-                className={`pricing-card p-8 lg:p-12 ${
-                  plan.highlighted
-                    ? "bg-neutral-900 text-white"
-                    : "bg-white"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-8">
-                  <span className={`text-label ${plan.highlighted ? "text-neutral-500" : "text-neutral-400"}`}>
-                    {plan.name}
-                  </span>
-                  {plan.badge && (
-                    <span className="text-label text-orange-500">{plan.badge}</span>
-                  )}
-                </div>
-                <div className="mb-6">
-                  <span className={`text-[48px] font-medium text-display ${plan.highlighted ? "" : "text-neutral-900"}`}>
-                    {plan.price}
-                  </span>
-                  {plan.period && (
-                    <span className={`text-[15px] ml-1 ${plan.highlighted ? "text-neutral-500" : "text-neutral-500"}`}>
-                      {plan.period}
-                    </span>
-                  )}
-                </div>
-                <p className={`text-[15px] mb-8 ${plan.highlighted ? "text-neutral-400" : "text-neutral-500"}`}>
-                  {plan.description}
-                </p>
-                <ul className="space-y-3 mb-10">
-                  {plan.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className={`flex items-center gap-3 text-[14px] ${
-                        plan.highlighted ? "text-neutral-300" : "text-neutral-600"
-                      }`}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${plan.highlighted ? "bg-orange-500" : "bg-neutral-300"}`} />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/login"
-                  className={`block w-full text-center py-3.5 text-[14px] font-medium transition-all ${
-                    plan.highlighted
-                      ? "bg-white hover:bg-neutral-100 text-neutral-900"
-                      : "border border-neutral-200 hover:border-neutral-400 text-neutral-700 hover:bg-neutral-50"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 9. Pricing */}
+      <PricingCards content={content.pricing} />
 
-      {/* FAQ */}
-      <section className="py-32 px-6 lg:px-12 bg-neutral-50">
+      {/* 10. FAQ */}
+      <section id="faq" className="py-32 px-6 lg:px-12 bg-neutral-50">
         <div className="max-w-[1400px] mx-auto">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
             <div className="lg:col-span-4">
@@ -541,7 +275,7 @@ export function LandingPage({ content }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* 11. Final CTA */}
       <section ref={ctaRef} className="py-32 px-6 lg:px-12 border-t border-neutral-200">
         <div className="max-w-[1400px] mx-auto text-center">
           <h2 className="final-cta-text text-[clamp(2rem,5vw,4rem)] font-medium text-neutral-900 text-display leading-[0.95] mb-8">
@@ -562,7 +296,7 @@ export function LandingPage({ content }: LandingPageProps) {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* 12. Footer */}
       <footer className="py-12 px-6 lg:px-12 border-t border-neutral-200">
         <div className="max-w-[1400px] mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
@@ -594,6 +328,9 @@ export function LandingPage({ content }: LandingPageProps) {
           </div>
         </div>
       </footer>
+
+      {/* 13. Live Activity Toast */}
+      <LiveActivityToast />
 
       <style jsx global>{`
         .site-header {

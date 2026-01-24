@@ -186,11 +186,14 @@ export interface FooterContent {
 
 export interface LandingContent {
   hero: HeroContent;
+  heroBadge: HeroBadgeContent;
+  facePile: FacePileContent;
   trust: TrustContent;
-  problem: ProblemContent;
-  steps: StepsContent;
+  fork: ForkContent;
+  bento: BentoContent;
+  stats: StatsContent;
   styles: StylesContent;
-  testimonial: TestimonialContent;
+  socialProof: SocialProofContent;
   pricing: PricingContent;
   faq: FAQContent;
   cta: CTAContent;
@@ -244,4 +247,65 @@ export interface UploadZoneContent {
   drop_text: string;
   click_text: string;
   formats_text: string;
+}
+
+// New Linear-style landing page types
+
+export interface HeroBadgeContent {
+  text: string;
+}
+
+export interface FacePileContent {
+  count: string;
+  suffix: string;
+}
+
+export interface ForkCard {
+  id: string;
+  title: string;
+  target: string;
+  tagline: string;
+  description: string;
+  before_image: string;
+  after_image: string;
+  cta: string;
+}
+
+export interface ForkContent {
+  cards: ForkCard[];
+}
+
+export interface BentoItem {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export interface BentoContent {
+  label: string;
+  title: string;
+  items: BentoItem[];
+}
+
+export interface StatItem {
+  value: string;
+  label: string;
+  trend: "up" | "down";
+}
+
+export interface StatsContent {
+  label: string;
+  items: StatItem[];
+  copy: string;
+}
+
+export interface SocialProofContent {
+  quote: string;
+  author_name: string;
+  author_role: string;
+  author_image?: string;
+  stats_title: string;
+  stats_count: string;
+  stats_trend: string;
 }
