@@ -30,7 +30,7 @@ const defaultContent: LandingContent = {
     cards: [
       {
         id: "enhance",
-        title: "VISTTA Enhance",
+        title: "Vistta Enhance",
         target: "Alquiler Vacacional",
         tagline: "Mejora la luz, elimina el desorden, mantén la verdad",
         description: "Optimiza tus fotos actuales sin cambiar la realidad. Perfecto para alquileres donde el huésped verá exactamente lo que reserva.",
@@ -40,7 +40,7 @@ const defaultContent: LandingContent = {
       },
       {
         id: "vision",
-        title: "VISTTA Vision",
+        title: "Vistta Vision",
         target: "Venta Inmobiliaria",
         tagline: "Amuebla espacios vacíos. Vende el potencial",
         description: "Transforma espacios vacíos o anticuados en renders con decoración moderna. Ayuda al comprador a visualizar su futuro hogar.",
@@ -52,7 +52,7 @@ const defaultContent: LandingContent = {
   },
   bento: {
     label: "Tecnología + Confianza",
-    title: "Por qué las agencias eligen VISTTA",
+    title: "Por qué las agencias eligen Vistta",
     items: [
       {
         id: "privacy",
@@ -70,7 +70,7 @@ const defaultContent: LandingContent = {
         id: "easy",
         icon: "mouse",
         title: "Sin Curva de Aprendizaje",
-        description: "Si sabes arrastrar un archivo, sabes usar VISTTA. Interfaz diseñada para agentes, no para diseñadores.",
+        description: "Si sabes arrastrar un archivo, sabes usar Vistta. Interfaz diseñada para agentes, no para diseñadores.",
       },
       {
         id: "ai",
@@ -119,7 +119,7 @@ const defaultContent: LandingContent = {
         period: "",
         description: "Pack de 10 créditos · Sin caducidad",
         features: [
-          "VISTTA Enhance + Vision",
+          "Vistta Enhance + Vision",
           "Todos los estilos disponibles",
           "Resolución 4K",
           "Sin marcas de agua",
@@ -150,7 +150,7 @@ const defaultContent: LandingContent = {
     label: "FAQ",
     title: "Preguntas frecuentes",
     items: [
-      { question: "¿Es legal usar estas fotos en Idealista/Airbnb?", answer: "Sí, siempre que indiques que es una \"Recreación Virtual\" o \"Propuesta de Decoración\". VISTTA incluye una pequeña marca de agua opcional que dice \"Virtual Staging\" para que seas transparente con los compradores." },
+      { question: "¿Es legal usar estas fotos en Idealista/Airbnb?", answer: "Sí, siempre que indiques que es una \"Recreación Virtual\" o \"Propuesta de Decoración\". Vistta incluye una pequeña marca de agua opcional que dice \"Virtual Staging\" para que seas transparente con los compradores." },
       { question: "¿La IA cambia la estructura de la casa?", answer: "No. Nuestra tecnología respeta las paredes, ventanas, suelos y techos. Solo cambiamos el mobiliario y la decoración. El comprador reconocerá el espacio al visitarlo." },
       { question: "¿Qué calidad tienen las imágenes?", answer: "Las imágenes se generan en alta resolución (hasta 4K) con calidad fotorrealista. Son perfectas para publicar en portales inmobiliarios o redes sociales." },
       { question: "¿Cuánto tiempo tarda en generarse?", answer: "Normalmente entre 10 y 20 segundos. Sube tu foto, elige el estilo, y en menos de medio minuto tienes tu render listo para publicar." },
@@ -170,7 +170,7 @@ const defaultContent: LandingContent = {
       { title: "Cobertura", links: [{ label: "Home Staging Tenerife", href: "#" }, { label: "Home Staging Gran Canaria", href: "#" }, { label: "Decoración Virtual", href: "#" }] },
       { title: "Legal", links: [{ label: "Términos", href: "#" }, { label: "Privacidad", href: "#" }] },
     ],
-    copyright: "VISTTA · Hecho en Canarias",
+    copyright: "Vistta · Hecho en Canarias",
   },
 };
 

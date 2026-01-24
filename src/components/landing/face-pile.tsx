@@ -42,7 +42,7 @@ export function FacePile({ className }: FacePileProps) {
 
       {/* Text */}
       <p className="text-[13px] text-neutral-600">
-        Más de 500 propietarios y agencias ya usan Vistta en {currentYear}.
+        Más de 750 propietarios y agencias ya usan Vistta en {currentYear}.
       </p>
     </div>
   );

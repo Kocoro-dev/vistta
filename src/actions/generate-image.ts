@@ -59,7 +59,7 @@ export async function generateImage(input: GenerateImageInput) {
 
   if (!isUnlimited && generationCount >= ALPHA_LIMIT) {
     return {
-      error: `Has alcanzado el límite de ${ALPHA_LIMIT} imágenes en la versión alpha. ¡Gracias por probar VISTTA!`,
+      error: `Has alcanzado el límite de ${ALPHA_LIMIT} imágenes en la versión alpha. ¡Gracias por probar Vistta!`,
       limitReached: true,
     };
   }

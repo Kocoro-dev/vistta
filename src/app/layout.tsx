@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VISTTA | Transformación Visual Inmobiliaria",
+  title: "Vistta | Transformación Visual Inmobiliaria",
   description:
     "Transforma espacios con inteligencia artificial. Redecora y renueva habitaciones virtualmente.",
 };

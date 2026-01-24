@@ -9,7 +9,7 @@ const defaultFaqs: FAQItem[] = [
   {
     question: "¿Es legal usar estas fotos en Idealista/Airbnb?",
     answer:
-      'Sí, siempre que indiques que es una "Recreación Virtual" o "Propuesta de Decoración". VISTTA incluye una pequeña marca de agua opcional que dice "Virtual Staging" para que seas transparente con los compradores.',
+      'Sí, siempre que indiques que es una "Recreación Virtual" o "Propuesta de Decoración". Vistta incluye una pequeña marca de agua opcional que dice "Virtual Staging" para que seas transparente con los compradores.',
   },
   {
     question: "¿La IA cambia la estructura de la casa?",

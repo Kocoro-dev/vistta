@@ -235,7 +235,7 @@ export function LandingPage({ content }: LandingPageProps) {
             </div>
             <div className="lg:col-span-4 flex flex-col justify-end">
               <p ref={heroSubtitleRef} className="text-[17px] text-neutral-600 leading-relaxed mb-6">
-                {content.hero.description}
+                Tecnología de inteligencia artificial para mejorar o rediseñar las imágenes de tus propiedades en segundos. Fácil de usar y en solo unos minutos.
               </p>
 
               {/* Face Pile */}

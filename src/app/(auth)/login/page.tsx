@@ -39,7 +39,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <Link href="/" className="text-[15px] font-medium tracking-tight">
-            VISTTA
+            Vistta
           </Link>
         </div>
 
@@ -54,7 +54,7 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           <p className="text-[13px] text-neutral-600">
-            © {new Date().getFullYear()} VISTTA
+            © {new Date().getFullYear()} Vistta
           </p>
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <Link href="/" className="lg:hidden text-[15px] font-medium tracking-tight text-neutral-900 mb-12 block">
-            VISTTA
+            Vistta
           </Link>
 
           <div className="mb-10">

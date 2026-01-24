@@ -65,7 +65,7 @@ export function AdminSidebar() {
             <span className="text-[11px] font-bold text-neutral-900">V</span>
           </div>
           <div>
-            <span className="text-[14px] font-medium text-white">VISTTA</span>
+            <span className="text-[14px] font-medium text-white">Vistta</span>
             <span className="text-[11px] text-neutral-500 block -mt-0.5">Admin</span>
           </div>
         </Link>

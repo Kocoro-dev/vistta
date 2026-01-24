@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
             <Lock className="h-5 w-5 text-neutral-400" />
           </div>
           <h1 className="text-[24px] font-medium text-white mb-2">
-            Admin VISTTA
+            Admin Vistta
           </h1>
           <p className="text-[14px] text-neutral-500">
             Accede al panel de administración

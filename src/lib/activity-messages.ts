@@ -32,7 +32,7 @@ export const actions = [
   { text: "ha probado el estilo Nórdico", emoji: "style" },
   { text: "ha mejorado un apartamento", emoji: "apartment" },
   { text: "ha transformado una cocina", emoji: "kitchen" },
-  { text: "está usando VISTTA Enhance", emoji: "enhance" },
+  { text: "está usando Vistta Enhance", emoji: "enhance" },
   { text: "ha generado 5 imágenes", emoji: "multiple" },
   { text: "ha optimizado fotos para Airbnb", emoji: "airbnb" },
 ];

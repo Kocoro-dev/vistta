@@ -27,7 +27,7 @@ const columns = [
   },
   {
     id: "vistta",
-    title: "VISTTA AI",
+    title: "Vistta AI",
     subtitle: "The smart way",
     highlighted: true,
   },
@@ -285,7 +285,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
         {/* Mobile-friendly summary */}
         <div className="mt-12 lg:hidden">
           <div className="bg-neutral-900 text-white p-6">
-            <h4 className="text-[15px] font-medium mb-4">VISTTA AI vs. Alternativas</h4>
+            <h4 className="text-[15px] font-medium mb-4">Vistta AI vs. Alternativas</h4>
             <ul className="space-y-3 text-[14px]">
               <li className="flex items-center gap-3">
                 <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
