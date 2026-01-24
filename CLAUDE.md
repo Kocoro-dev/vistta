@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Style Guide
+
+**IMPORTANT:** Before creating any UI element, consult `styleguide.md` for design tokens, typography, colors, spacing, and component patterns.
+
+### Typography
+- **Títulos (h1-h6):** Space Grotesk
+- **Párrafos y texto:** Manrope
+- **Código:** Geist Mono
+
 ## Commands
 
 ```bash
@@ -12,13 +21,14 @@ npm run preview  # Preview production build
 
 ## Environment Setup
 
-Copy `.env.local.example` to `.env.local` and configure:
+Create `.env.local` and configure:
 - `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon/public key
 - `SUPABASE_SERVICE_ROLE_KEY` - Service role key (for webhooks)
 - `REPLICATE_API_TOKEN` - Replicate API token
 - `REPLICATE_WEBHOOK_SECRET` - Secret for webhook verification
 - `NEXT_PUBLIC_APP_URL` - Public URL for webhooks
+- `GOOGLE_AI_API_KEY` - Google AI API key (for Gemini)
 
 ## Architecture
 
@@ -66,7 +76,18 @@ Protected pages require `export const dynamic = "force-dynamic"` to avoid static
 ### Component Organization
 
 - `src/components/ui/` - shadcn/ui primitives
-- `src/components/` - App components (header, upload-zone, compare-slider, etc.)
+- `src/components/` - App components (header, footer, upload-zone, compare-slider, etc.)
+- `src/components/features/` - Modular features (easily removable)
 - `src/actions/` - Server actions (upload-image, generate-image)
 - `src/lib/supabase/` - Supabase client utilities
 - `src/types/database.ts` - TypeScript types and style presets
+
+### Modular Features
+
+Features in `src/components/features/` are self-contained and can be removed without affecting core functionality.
+
+**PDF Export** (`src/components/features/pdf-export/`)
+- `PdfExportButton` - Button component to export current page as PDF
+- `usePdfExport` - Hook with export logic (uses html2canvas + jspdf)
+- Used in: `Footer` component
+- To remove: Delete the folder, remove import from `footer.tsx`, uninstall `html2canvas` and `jspdf`

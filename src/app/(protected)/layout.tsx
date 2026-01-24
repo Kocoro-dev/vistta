@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import type { Profile } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -29,9 +30,10 @@ export default async function ProtectedLayout({
   const profile = data as unknown as Profile | null;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 flex flex-col">
       <Header profile={profile} />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
+      <Footer />
     </div>
   );
 }
