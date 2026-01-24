@@ -16,9 +16,8 @@ const avatars = [
   { initials: "LT", bg: "bg-neutral-600" },
 ];
 
-export function FacePile({ count, suffix, className }: FacePileProps) {
+export function FacePile({ className }: FacePileProps) {
   const currentYear = new Date().getFullYear();
-  const displaySuffix = suffix.replace("{year}", currentYear.toString());
 
   return (
     <div className={cn("flex items-center gap-4", className)}>
@@ -42,14 +41,9 @@ export function FacePile({ count, suffix, className }: FacePileProps) {
       </div>
 
       {/* Text */}
-      <div className="flex flex-col">
-        <span className="text-[14px] font-medium text-neutral-900">
-          {count}
-        </span>
-        <span className="text-[12px] text-neutral-500">
-          {displaySuffix}
-        </span>
-      </div>
+      <p className="text-[13px] text-neutral-600">
+        Más de 500 propietarios y agencias ya usan Vistta en {currentYear}.
+      </p>
     </div>
   );
 }

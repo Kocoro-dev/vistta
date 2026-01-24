@@ -119,6 +119,26 @@ Label:       text-[11px] (0.6875rem) uppercase, tracking: 0.1em
 <Button variant="outline" size="sm">Cancelar</Button>
 ```
 
+### Botón Secundario Hero (reservado para demo)
+
+```tsx
+// Estilo para botón secundario en hero section (Ver demo, etc.)
+<Link
+  href="#demo"
+  className="hero-cta-btn inline-flex items-center justify-center gap-2 border border-neutral-200 hover:border-neutral-400 text-neutral-700 px-6 py-3.5 text-[14px] font-medium transition-all hover:bg-neutral-50"
+>
+  Ver demo
+</Link>
+```
+
+**Propiedades:**
+- Border: `border border-neutral-200`
+- Hover border: `hover:border-neutral-400`
+- Text: `text-neutral-700`
+- Padding: `px-6 py-3.5`
+- Font: `text-[14px] font-medium`
+- Hover bg: `hover:bg-neutral-50`
+
 ### Cards
 
 ```tsx

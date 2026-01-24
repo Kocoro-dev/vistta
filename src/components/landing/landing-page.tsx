@@ -21,6 +21,7 @@ import { PricingCards } from "@/components/landing/pricing-cards";
 import { ComparisonTable } from "@/components/landing/comparison-table";
 import { FAQ } from "@/components/landing/faq";
 import { LiveActivityToast } from "@/components/landing/live-activity-toast";
+import { ValueProposition } from "@/components/landing/value-proposition";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -138,15 +139,73 @@ export function LandingPage({ content }: LandingPageProps) {
       {/* Header */}
       <header className="site-header fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 lg:px-12">
         <div className="max-w-[1400px] mx-auto h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center">
-            <img src="/Vistta-logo.svg" alt="Vistta" className="h-6" />
-          </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-12">
+            <Link href="/" className="flex items-center">
+              <img src="/Vistta-logo.svg" alt="Vistta" className="h-6" />
+            </Link>
+
+            {/* Navigation Links */}
+            <nav className="hidden lg:flex items-center gap-8">
+              <a
+                href="#plataforma"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('plataforma')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
+              >
+                Plataforma
+              </a>
+              <a
+                href="#productos"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
+              >
+                Productos
+              </a>
+              <a
+                href="#comparativa"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('comparativa')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
+              >
+                Comparativa
+              </a>
+              <a
+                href="#precios"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('precios')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
+              >
+                Precios
+              </a>
+              <a
+                href="#faq"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
+              >
+                FAQ
+              </a>
+            </nav>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="text-[13px] text-neutral-600 hover:text-neutral-900 font-medium px-4 py-2 transition-colors"
+              className="hidden sm:inline-flex text-[13px] text-neutral-600 hover:text-neutral-900 font-medium px-4 py-2 border border-neutral-200 hover:border-neutral-300 transition-all"
             >
-              Accede al panel de cliente
+              Accede al panel
             </Link>
             <Link
               href="/login"
@@ -196,12 +255,6 @@ export function LandingPage({ content }: LandingPageProps) {
                   {content.hero.cta_primary}
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
-                <Link
-                  href="#demo"
-                  className="hero-cta-btn inline-flex items-center justify-center gap-2 border border-neutral-200 hover:border-neutral-400 text-neutral-700 px-6 py-3.5 text-[14px] font-medium transition-all hover:bg-neutral-50"
-                >
-                  {content.hero.cta_secondary}
-                </Link>
               </div>
             </div>
           </div>
@@ -219,8 +272,13 @@ export function LandingPage({ content }: LandingPageProps) {
       {/* 2. Trust Logos */}
       <TrustLogos label={content.trust.label} logos={content.trust.logos} />
 
-      {/* 3. Feature Fork */}
-      <FeatureFork content={content.fork} />
+      {/* 3. Value Proposition */}
+      <ValueProposition id="plataforma" />
+
+      {/* 4. Feature Fork */}
+      <div id="productos">
+        <FeatureFork content={content.fork} />
+      </div>
 
       {/* 4. Bento Grid */}
       <BentoGrid content={content.bento} />
@@ -253,10 +311,14 @@ export function LandingPage({ content }: LandingPageProps) {
       <SocialProofSplit content={content.socialProof} />
 
       {/* 8. Reality Check Comparison */}
-      <ComparisonTable />
+      <div id="comparativa">
+        <ComparisonTable />
+      </div>
 
       {/* 9. Pricing */}
-      <PricingCards content={content.pricing} />
+      <div id="precios">
+        <PricingCards content={content.pricing} />
+      </div>
 
       {/* 10. FAQ */}
       <section id="faq" className="py-32 px-6 lg:px-12 bg-neutral-50">
