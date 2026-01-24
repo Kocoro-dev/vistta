@@ -90,7 +90,7 @@ export function LiveActivityToast() {
         toast.isLeaving ? "animate-toast-out" : "animate-toast-in"
       )}
     >
-      <div className="glassmorphism p-4 shadow-xl">
+      <div className="bg-white border border-neutral-200 rounded-lg p-4 shadow-xl">
         {/* Progress bar */}
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-neutral-200 overflow-hidden">
           <div

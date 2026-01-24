@@ -16,53 +16,33 @@ export function FeatureFork({ content, className }: FeatureForkProps) {
     <section className={cn("py-32 px-6 lg:px-12", className)}>
       <div className="max-w-[1400px] mx-auto">
         <div className="grid md:grid-cols-2 gap-6">
-          {content.cards.map((card, index) => (
+          {content.cards.map((card) => (
             <div
               key={card.id}
               className={cn(
                 "group relative overflow-hidden",
-                "border border-neutral-200 hover:border-neutral-300",
-                "transition-all duration-500 hover:-translate-y-1",
-                index === 1 && "bg-neutral-900 text-white border-neutral-800 hover:border-neutral-700"
+                "bg-white border border-neutral-200",
+                "hover:bg-neutral-900 hover:border-neutral-800",
+                "transition-all duration-500"
               )}
             >
               {/* Header */}
               <div className="p-8 pb-0">
                 <div className="flex items-start justify-between mb-4">
-                  <span
-                    className={cn(
-                      "text-label",
-                      index === 1 ? "text-orange-500" : "text-neutral-400"
-                    )}
-                  >
+                  <span className="text-label text-neutral-400 group-hover:text-orange-500 transition-colors duration-500">
                     {card.target}
                   </span>
                 </div>
 
-                <h3
-                  className={cn(
-                    "text-[24px] lg:text-[28px] font-medium mb-3 text-editorial",
-                    index === 1 ? "text-white" : "text-neutral-900"
-                  )}
-                >
+                <h3 className="text-[24px] lg:text-[28px] font-medium mb-3 text-editorial text-neutral-900 group-hover:text-white transition-colors duration-500">
                   {card.title}
                 </h3>
 
-                <p
-                  className={cn(
-                    "text-[15px] leading-relaxed mb-2",
-                    index === 1 ? "text-neutral-400" : "text-neutral-500"
-                  )}
-                >
+                <p className="text-[15px] leading-relaxed mb-2 text-neutral-500 group-hover:text-neutral-400 transition-colors duration-500">
                   {card.tagline}
                 </p>
 
-                <p
-                  className={cn(
-                    "text-[14px] leading-relaxed mb-6",
-                    index === 1 ? "text-neutral-500" : "text-neutral-400"
-                  )}
-                >
+                <p className="text-[14px] leading-relaxed mb-6 text-neutral-400 group-hover:text-neutral-500 transition-colors duration-500">
                   {card.description}
                 </p>
               </div>
@@ -79,13 +59,7 @@ export function FeatureFork({ content, className }: FeatureForkProps) {
               <div className="p-8 pt-6">
                 <Link
                   href="/login"
-                  className={cn(
-                    "inline-flex items-center gap-2 text-[14px] font-medium",
-                    "transition-all duration-300",
-                    index === 1
-                      ? "text-white hover:text-orange-400"
-                      : "text-neutral-900 hover:text-orange-600"
-                  )}
+                  className="inline-flex items-center gap-2 text-[14px] font-medium text-neutral-900 group-hover:text-white transition-all duration-500"
                 >
                   {card.cta}
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />

@@ -37,8 +37,8 @@ export function Header({ profile }: HeaderProps) {
     <header className="border-b border-neutral-200 bg-white">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
         <div className="flex items-center gap-12">
-          <Link href="/dashboard" className="text-[15px] font-medium tracking-tight text-neutral-900">
-            VISTTA
+          <Link href="/dashboard" className="flex items-center">
+            <img src="/Vistta-logo.svg" alt="Vistta" className="h-6" />
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link

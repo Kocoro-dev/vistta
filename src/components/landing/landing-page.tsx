@@ -136,23 +136,23 @@ export function LandingPage({ content }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-white overflow-hidden">
       {/* Header */}
-      <header className="site-header fixed top-0 left-0 right-0 z-50 transition-all duration-500">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
-          <Link href="/" className="text-[15px] font-medium tracking-tight text-neutral-900">
-            VISTTA
+      <header className="site-header fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 lg:px-12">
+        <div className="max-w-[1400px] mx-auto h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center">
+            <img src="/Vistta-logo.svg" alt="Vistta" className="h-6" />
           </Link>
           <div className="flex items-center gap-2">
             <Link
               href="/login"
               className="text-[13px] text-neutral-600 hover:text-neutral-900 font-medium px-4 py-2 transition-colors"
             >
-              Acceder
+              Accede al panel de cliente
             </Link>
             <Link
               href="/login"
               className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 text-[13px] font-medium transition-all hover:scale-[1.02]"
             >
-              Comenzar
+              Empieza gratis
             </Link>
           </div>
         </div>
@@ -209,8 +209,8 @@ export function LandingPage({ content }: LandingPageProps) {
           {/* Hero Slider */}
           <div ref={heroSliderRef} id="demo">
             <HeroSlider
-              beforeImage={content.hero.slider_before_image}
-              afterImage={content.hero.slider_after_image}
+              beforeImage="/examples/antes-hero.webp"
+              afterImage="/examples/despues-hero.jpeg"
             />
           </div>
         </div>
@@ -301,10 +301,8 @@ export function LandingPage({ content }: LandingPageProps) {
         <div className="max-w-[1400px] mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div>
-              <span className="text-[15px] font-medium text-neutral-900 tracking-tight">
-                VISTTA
-              </span>
-              <p className="text-[14px] text-neutral-500 mt-3 leading-relaxed">
+              <img src="/Vistta-logo.svg" alt="Vistta" className="h-5" />
+              <p className="text-[14px] text-neutral-500 mt-4 leading-relaxed">
                 {content.footer.brand_description}
               </p>
             </div>

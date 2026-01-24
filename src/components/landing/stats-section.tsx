@@ -65,31 +65,42 @@ export function StatsSection({ content, className }: StatsSectionProps) {
   return (
     <section
       ref={sectionRef}
-      className={cn("py-32 px-6 lg:px-12 bg-neutral-900 text-white", className)}
+      className={cn("py-32 px-6 lg:px-12 relative overflow-hidden", className)}
     >
-      <div className="max-w-[1400px] mx-auto">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/examples/estilo-nordico.jpg')" }}
+      />
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60" />
+
+      <div className="max-w-[1400px] mx-auto relative z-10">
         {/* Header */}
         <div className="mb-16">
-          <span className="text-label text-neutral-500 mb-6 block">
-            {content.label}
+          <span className="text-label text-orange-500 mb-6 block">
+            Resultados profesionales
           </span>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-12 lg:gap-24 mb-16">
+        <div className="grid md:grid-cols-3 gap-8 lg:gap-12 mb-16">
           {content.items.map((stat, index) => (
-            <div key={index} className="text-center md:text-left">
-              <div className="stat-value flex items-baseline justify-center md:justify-start gap-2 mb-3">
-                <span className="text-[clamp(3rem,8vw,6rem)] font-medium text-display text-white">
+            <div
+              key={index}
+              className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 text-center shadow-2xl"
+            >
+              <div className="stat-value flex items-baseline justify-center gap-2 mb-3">
+                <span className="text-[clamp(2.5rem,6vw,4rem)] font-medium text-display text-white">
                   {stat.value}
                 </span>
                 {stat.trend === "up" ? (
-                  <TrendingUp className="h-8 w-8 text-green-500" />
+                  <TrendingUp className="h-6 w-6 text-emerald-400" />
                 ) : (
-                  <TrendingDown className="h-8 w-8 text-orange-500" />
+                  <TrendingDown className="h-6 w-6 text-orange-400" />
                 )}
               </div>
-              <p className="stat-label text-[17px] text-neutral-400">
+              <p className="stat-label text-[15px] text-white/70">
                 {stat.label}
               </p>
             </div>
@@ -98,8 +109,8 @@ export function StatsSection({ content, className }: StatsSectionProps) {
 
         {/* Copy */}
         <div className="max-w-2xl">
-          <p className="text-[20px] lg:text-[24px] text-neutral-300 leading-relaxed text-editorial">
-            {content.copy}
+          <p className="text-[18px] lg:text-[22px] text-white/90 leading-relaxed text-editorial">
+            No es magia, son datos. Las fotos profesionales venden más, a mejor precio y más rápido.
           </p>
         </div>
       </div>

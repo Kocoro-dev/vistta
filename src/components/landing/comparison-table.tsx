@@ -193,22 +193,29 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
                       : "bg-white"
                   )}
                 >
-                  <h3
-                    className={cn(
-                      "text-[15px] font-medium mb-1",
-                      col.highlighted ? "text-white" : "text-neutral-900"
-                    )}
-                  >
-                    {col.title}
-                  </h3>
-                  <p
-                    className={cn(
-                      "text-[12px]",
-                      col.highlighted ? "text-neutral-400" : "text-neutral-500"
-                    )}
-                  >
-                    {col.subtitle}
-                  </p>
+                  {col.highlighted ? (
+                    <>
+                      <div className="flex justify-center mb-2">
+                        <img
+                          src="/Vistta-logo-white.svg"
+                          alt="Vistta"
+                          className="h-5"
+                        />
+                      </div>
+                      <p className="text-[12px] text-neutral-400">
+                        {col.subtitle}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-[15px] font-medium mb-1 text-neutral-900">
+                        {col.title}
+                      </h3>
+                      <p className="text-[12px] text-neutral-500">
+                        {col.subtitle}
+                      </p>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
