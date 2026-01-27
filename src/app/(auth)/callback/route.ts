@@ -8,9 +8,21 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error && data.user) {
+      // Check if this is a new user (created in the last 60 seconds)
+      const createdAt = new Date(data.user.created_at);
+      const now = new Date();
+      const isNewUser = (now.getTime() - createdAt.getTime()) < 60000; // 60 seconds
+
+      // Redirect with registration flag if new user
+      const redirectUrl = new URL(next, origin);
+      if (isNewUser) {
+        redirectUrl.searchParams.set("registered", "true");
+      }
+
+      return NextResponse.redirect(redirectUrl.toString());
     }
   }
 

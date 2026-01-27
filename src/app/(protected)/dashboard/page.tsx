@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardContent } from "@/components/dashboard-content";
+import { RegistrationTracker } from "@/components/registration-tracker";
 import { Zap, Crown } from "lucide-react";
 import type { Generation, Profile, Project } from "@/types/database";
 import { UNLIMITED_USERS } from "@/lib/constants";
@@ -54,6 +56,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Track new registrations */}
+      <Suspense fallback={null}>
+        <RegistrationTracker userEmail={user?.email} />
+      </Suspense>
+
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12">
         {/* Credits Banner */}
         <div className={`border p-6 mb-12 ${hasPurchased || isUnlimited ? "border-green-200 bg-green-50" : credits <= 1 ? "border-amber-200 bg-amber-50" : "border-neutral-200 bg-white"}`}>
