@@ -4,6 +4,7 @@ import { Geist_Mono, Bricolage_Grotesque, Manrope } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll";
 import { CookieConsent } from "@/components/cookie-consent";
+import { AttributionTracker } from "@/components/attribution-tracker";
 import "./globals.css";
 
 const GTM_ID = "GTM-5PDBMJRW";
@@ -105,6 +106,7 @@ export default function RootLayout({
         </SmoothScrollProvider>
         <Toaster position="bottom-right" />
         <CookieConsent />
+        <AttributionTracker trackSessions />
       </body>
     </html>
   );
