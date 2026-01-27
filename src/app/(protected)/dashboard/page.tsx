@@ -26,14 +26,22 @@ export default async function DashboardPage() {
   const credits = profile?.credits ?? 0;
   const hasPurchased = profile?.has_purchased ?? false;
 
-  // Get generations
+  // Get generations with pagination (first page)
+  const PAGE_SIZE = 12;
+
+  const { count: totalGenerations } = await supabase
+    .from("generations")
+    .select("*", { count: "exact", head: true });
+
   const { data: generationsData } = await supabase
     .from("generations")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(0, PAGE_SIZE - 1);
 
   const generations = (generationsData || []) as unknown as Generation[];
-  const generationCount = generations.length;
+  const generationCount = totalGenerations ?? generations.length;
+  const hasMore = generations.length < (totalGenerations ?? 0);
   const canCreate = isUnlimited || hasPurchased || credits > 0;
 
   // Get projects
@@ -103,6 +111,8 @@ export default async function DashboardPage() {
         <DashboardContent
           initialGenerations={generations}
           initialProjects={projects}
+          initialHasMore={hasMore}
+          initialTotalCount={generationCount}
           canCreate={canCreate}
         />
       </div>

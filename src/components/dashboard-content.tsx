@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GenerationCard } from "@/components/generation-card";
@@ -10,15 +10,21 @@ import { getProjects, getProjectGenerations } from "@/actions/projects";
 import { Plus, ImageIcon, Loader2 } from "lucide-react";
 import type { Generation, Project } from "@/types/database";
 
+const PAGE_SIZE = 12;
+
 interface DashboardContentProps {
   initialGenerations: Generation[];
   initialProjects: Project[];
+  initialHasMore: boolean;
+  initialTotalCount: number;
   canCreate: boolean;
 }
 
 export function DashboardContent({
   initialGenerations,
   initialProjects,
+  initialHasMore,
+  initialTotalCount,
   canCreate,
 }: DashboardContentProps) {
   const router = useRouter();
@@ -26,20 +32,81 @@ export function DashboardContent({
   const [generations, setGenerations] = useState<Generation[]>(initialGenerations);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [offset, setOffset] = useState(initialGenerations.length);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+  // Ref for infinite scroll sentinel
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Load more generations
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+
+    setIsLoadingMore(true);
+    try {
+      const apiProjectId =
+        selectedProjectId === "none"
+          ? null
+          : selectedProjectId === null
+          ? "all"
+          : selectedProjectId;
+
+      const result = await getProjectGenerations(apiProjectId, {
+        limit: PAGE_SIZE,
+        offset,
+      });
+
+      if (result.generations) {
+        setGenerations((prev) => [...prev, ...result.generations]);
+        setHasMore(result.hasMore ?? false);
+        setOffset((prev) => prev + result.generations.length);
+      }
+    } catch (error) {
+      console.error("Error loading more generations:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, selectedProjectId, offset]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, loadMore]);
 
   const handleProjectChange = async (projectId: string | null) => {
     setSelectedProjectId(projectId);
     setIsLoading(true);
+    setOffset(0);
 
     try {
       // Map "none" to null for API, and null to "all"
-      const apiProjectId = projectId === "none" ? null : projectId === null ? "all" : projectId;
-      const result = await getProjectGenerations(apiProjectId);
+      const apiProjectId =
+        projectId === "none" ? null : projectId === null ? "all" : projectId;
+      const result = await getProjectGenerations(apiProjectId, {
+        limit: PAGE_SIZE,
+        offset: 0,
+      });
 
       if (result.generations) {
         setGenerations(result.generations);
+        setHasMore(result.hasMore ?? false);
+        setOffset(result.generations.length);
       }
     } catch (error) {
       console.error("Error loading generations:", error);
@@ -71,8 +138,17 @@ export function DashboardContent({
     if (selectedProjectId === projectId) {
       setSelectedProjectId(null);
       setGenerations(initialGenerations);
+      setHasMore(initialHasMore);
+      setOffset(initialGenerations.length);
     }
     router.refresh();
+  };
+
+  const handleProjectAssigned = () => {
+    // Refresh if filtering by project
+    if (selectedProjectId !== null) {
+      handleProjectChange(selectedProjectId);
+    }
   };
 
   return (
@@ -96,7 +172,8 @@ export function DashboardContent({
               ? "Todos los Diseños"
               : selectedProjectId === "none"
               ? "Sin Carpeta"
-              : projects.find((p) => p.id === selectedProjectId)?.name || "Mis Diseños"}
+              : projects.find((p) => p.id === selectedProjectId)?.name ||
+                "Mis Diseños"}
           </h1>
         </div>
         {canCreate && (
@@ -116,21 +193,35 @@ export function DashboardContent({
           <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
         </div>
       ) : generations.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {generations.map((generation) => (
-            <GenerationCard
-              key={generation.id}
-              generation={generation}
-              projects={projects}
-              onProjectAssigned={() => {
-                // Refresh if filtering by project
-                if (selectedProjectId !== null) {
-                  handleProjectChange(selectedProjectId);
-                }
-              }}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {generations.map((generation) => (
+              <GenerationCard
+                key={generation.id}
+                generation={generation}
+                projects={projects}
+                onProjectAssigned={handleProjectAssigned}
+              />
+            ))}
+          </div>
+
+          {/* Infinite scroll sentinel */}
+          <div ref={loadMoreRef} className="h-4" />
+
+          {/* Loading more indicator */}
+          {isLoadingMore && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
+            </div>
+          )}
+
+          {/* End of list */}
+          {!hasMore && generations.length > PAGE_SIZE && (
+            <p className="text-center text-[13px] text-neutral-400 py-8">
+              Has visto todos tus diseños
+            </p>
+          )}
+        </>
       ) : (
         <EmptyState selectedProjectId={selectedProjectId} />
       )}
@@ -150,7 +241,11 @@ export function DashboardContent({
   );
 }
 
-function EmptyState({ selectedProjectId }: { selectedProjectId: string | null }) {
+function EmptyState({
+  selectedProjectId,
+}: {
+  selectedProjectId: string | null;
+}) {
   const message =
     selectedProjectId === "none"
       ? "No hay diseños sin carpeta asignada."

@@ -210,7 +210,12 @@ export async function assignGenerationToProject(
   return { success: true };
 }
 
-export async function getProjectGenerations(projectId: string | null) {
+const GENERATIONS_PAGE_SIZE = 12;
+
+export async function getProjectGenerations(
+  projectId: string | null,
+  options?: { limit?: number; offset?: number }
+) {
   const supabase = await createClient();
 
   const {
@@ -221,11 +226,30 @@ export async function getProjectGenerations(projectId: string | null) {
     return { error: "No autorizado" };
   }
 
+  const limit = options?.limit ?? GENERATIONS_PAGE_SIZE;
+  const offset = options?.offset ?? 0;
+
+  // First, get total count for pagination info
+  let countQuery = supabase
+    .from("generations")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  if (projectId === null) {
+    countQuery = countQuery.is("project_id", null);
+  } else if (projectId !== "all") {
+    countQuery = countQuery.eq("project_id", projectId);
+  }
+
+  const { count } = await countQuery;
+
+  // Then get paginated data
   let query = supabase
     .from("generations")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
 
   if (projectId === null) {
     // Get generations without a project
@@ -244,5 +268,14 @@ export async function getProjectGenerations(projectId: string | null) {
     return { error: "Error al obtener las generaciones" };
   }
 
-  return { generations: (data || []) as unknown as Generation[] };
+  const generations = (data || []) as unknown as Generation[];
+  const totalCount = count ?? 0;
+  const hasMore = offset + generations.length < totalCount;
+
+  return {
+    generations,
+    totalCount,
+    hasMore,
+    nextOffset: offset + limit,
+  };
 }

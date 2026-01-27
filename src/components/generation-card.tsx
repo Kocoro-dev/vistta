@@ -84,6 +84,9 @@ export function GenerationCard({
             alt={style?.name || "Generation"}
             fill
             className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+            loading="lazy"
+            quality={75}
           />
         ) : (
           <div className="absolute inset-0 bg-neutral-100" />
