@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll";
 import { CookieConsent } from "@/components/cookie-consent";
 import { AttributionTracker } from "@/components/attribution-tracker";
+import { GTMAttributionBridge } from "@/components/gtm-attribution-bridge";
 import "./globals.css";
 
 const GTM_ID = "GTM-5PDBMJRW";
@@ -107,6 +108,7 @@ export default function RootLayout({
         <Toaster position="bottom-right" />
         <CookieConsent />
         <AttributionTracker trackSessions notifyOnFirstVisit />
+        <GTMAttributionBridge />
       </body>
     </html>
   );
