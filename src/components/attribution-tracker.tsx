@@ -2,11 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import { useAttribution } from "@/hooks/use-attribution";
-import { saveSession } from "@/actions/sessions";
+import { saveSession, sendNotification } from "@/actions/sessions";
 
 interface AttributionTrackerProps {
   /** Whether to save session to database on first visit */
   trackSessions?: boolean;
+  /** Whether to send Discord notification on first visit */
+  notifyOnFirstVisit?: boolean;
 }
 
 /**
@@ -17,15 +19,17 @@ interface AttributionTrackerProps {
  * - Store attribution data in cookies
  * - Fetch geolocation info
  * - Optionally save sessions to database
+ * - Optionally notify Discord on first visit
  *
  * Usage:
  * ```tsx
  * // In layout.tsx
- * <AttributionTracker trackSessions />
+ * <AttributionTracker trackSessions notifyOnFirstVisit />
  * ```
  */
 export function AttributionTracker({
   trackSessions = false,
+  notifyOnFirstVisit = false,
 }: AttributionTrackerProps) {
   const { attribution, isFirstSession, isLoading } = useAttribution();
   const hasTracked = useRef(false);
@@ -40,8 +44,18 @@ export function AttributionTracker({
       saveSession(attribution).catch((err) => {
         console.warn("Failed to save session:", err);
       });
+
+      // Send Discord notification for first visit
+      if (notifyOnFirstVisit) {
+        sendNotification({
+          event_type: "new_visit",
+          attribution,
+        }).catch((err) => {
+          console.warn("Failed to send visit notification:", err);
+        });
+      }
     }
-  }, [attribution, isFirstSession, isLoading, trackSessions]);
+  }, [attribution, isFirstSession, isLoading, trackSessions, notifyOnFirstVisit]);
 
   // This component renders nothing
   return null;

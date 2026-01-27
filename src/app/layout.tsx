@@ -106,7 +106,7 @@ export default function RootLayout({
         </SmoothScrollProvider>
         <Toaster position="bottom-right" />
         <CookieConsent />
-        <AttributionTracker trackSessions />
+        <AttributionTracker trackSessions notifyOnFirstVisit />
       </body>
     </html>
   );
