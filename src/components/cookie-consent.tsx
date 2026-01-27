@@ -104,7 +104,7 @@ export function CookieConsent() {
         .cmp-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.5);
+          background: rgba(0, 0, 0, 0.6);
           z-index: 9998;
           opacity: 0;
           animation: cmp-fade-in 0.3s ease forwards;
@@ -116,20 +116,20 @@ export function CookieConsent() {
           left: 0;
           right: 0;
           z-index: 9999;
-          padding: 1rem;
-          animation: cmp-slide-up 0.4s ease forwards;
+          animation: cmp-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .cmp-banner-inner {
-          max-width: 1200px;
-          margin: 0 auto;
-          background: #1f2937;
-          border-radius: 12px;
-          padding: 1.5rem;
-          box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+          background: rgba(10, 10, 10, 0.95);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 1.25rem 1.5rem;
         }
 
         .cmp-content {
+          max-width: 1200px;
+          margin: 0 auto;
           display: flex;
           flex-direction: column;
           gap: 1rem;
@@ -148,28 +148,31 @@ export function CookieConsent() {
         }
 
         .cmp-text h3 {
-          color: #ffffff;
-          font-size: 1rem;
-          font-weight: 600;
-          margin: 0 0 0.5rem 0;
-          font-family: var(--font-sans), system-ui, sans-serif;
+          color: #fafafa;
+          font-size: 0.9375rem;
+          font-weight: 500;
+          margin: 0 0 0.375rem 0;
+          font-family: var(--font-heading), system-ui, sans-serif;
+          letter-spacing: -0.02em;
         }
 
         .cmp-text p {
-          color: #9ca3af;
-          font-size: 0.875rem;
+          color: #a3a3a3;
+          font-size: 0.8125rem;
           line-height: 1.5;
           margin: 0;
           font-family: var(--font-sans), system-ui, sans-serif;
         }
 
         .cmp-text a {
-          color: #60a5fa;
+          color: #a3a3a3;
           text-decoration: underline;
+          text-underline-offset: 2px;
+          transition: color 0.2s ease;
         }
 
         .cmp-text a:hover {
-          color: #93c5fd;
+          color: #fafafa;
         }
 
         .cmp-buttons {
@@ -186,9 +189,8 @@ export function CookieConsent() {
         }
 
         .cmp-btn {
-          padding: 0.75rem 1.5rem;
-          border-radius: 8px;
-          font-size: 0.875rem;
+          padding: 0.625rem 1.25rem;
+          font-size: 0.8125rem;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s ease;
@@ -198,33 +200,34 @@ export function CookieConsent() {
         }
 
         .cmp-btn-primary {
-          background: #f97316;
+          background: #c2410c;
           color: #ffffff;
         }
 
         .cmp-btn-primary:hover {
-          background: #ea580c;
+          background: #9a3412;
         }
 
         .cmp-btn-secondary {
           background: transparent;
-          color: #9ca3af;
-          border: 1px solid #4b5563;
+          color: #a3a3a3;
+          border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .cmp-btn-secondary:hover {
-          background: #374151;
-          color: #ffffff;
+          background: rgba(255, 255, 255, 0.05);
+          color: #fafafa;
+          border-color: rgba(255, 255, 255, 0.25);
         }
 
         .cmp-btn-text {
           background: transparent;
-          color: #9ca3af;
-          padding: 0.75rem 1rem;
+          color: #737373;
+          padding: 0.625rem 1rem;
         }
 
         .cmp-btn-text:hover {
-          color: #ffffff;
+          color: #a3a3a3;
         }
 
         /* Preferences Modal */
@@ -234,27 +237,38 @@ export function CookieConsent() {
           left: 50%;
           transform: translate(-50%, -50%);
           z-index: 10000;
-          background: #1f2937;
-          border-radius: 12px;
+          background: rgba(10, 10, 10, 0.98);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 1.5rem;
-          max-width: 500px;
+          max-width: 440px;
           width: calc(100% - 2rem);
           max-height: calc(100vh - 2rem);
           overflow-y: auto;
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+          box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
           animation: cmp-fade-in 0.3s ease forwards;
         }
 
         .cmp-modal h3 {
-          color: #ffffff;
-          font-size: 1.125rem;
-          font-weight: 600;
-          margin: 0 0 1rem 0;
-          font-family: var(--font-sans), system-ui, sans-serif;
+          color: #fafafa;
+          font-size: 1rem;
+          font-weight: 500;
+          margin: 0 0 1.25rem 0;
+          font-family: var(--font-heading), system-ui, sans-serif;
+          letter-spacing: -0.02em;
         }
 
         .cmp-modal-section {
           margin-bottom: 1.25rem;
+          padding-bottom: 1.25rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .cmp-modal-section:last-of-type {
+          border-bottom: none;
+          margin-bottom: 0;
+          padding-bottom: 0;
         }
 
         .cmp-modal-section-header {
@@ -265,16 +279,16 @@ export function CookieConsent() {
         }
 
         .cmp-modal-section h4 {
-          color: #ffffff;
-          font-size: 0.9375rem;
+          color: #fafafa;
+          font-size: 0.875rem;
           font-weight: 500;
           margin: 0;
           font-family: var(--font-sans), system-ui, sans-serif;
         }
 
         .cmp-modal-section p {
-          color: #9ca3af;
-          font-size: 0.8125rem;
+          color: #737373;
+          font-size: 0.75rem;
           line-height: 1.5;
           margin: 0;
           font-family: var(--font-sans), system-ui, sans-serif;
@@ -282,8 +296,8 @@ export function CookieConsent() {
 
         .cmp-toggle {
           position: relative;
-          width: 44px;
-          height: 24px;
+          width: 40px;
+          height: 22px;
           flex-shrink: 0;
         }
 
@@ -297,29 +311,28 @@ export function CookieConsent() {
           position: absolute;
           cursor: pointer;
           inset: 0;
-          background: #4b5563;
-          border-radius: 24px;
+          background: #262626;
           transition: 0.3s;
         }
 
         .cmp-toggle-slider:before {
           content: "";
           position: absolute;
-          height: 18px;
-          width: 18px;
+          height: 16px;
+          width: 16px;
           left: 3px;
           bottom: 3px;
-          background: #ffffff;
-          border-radius: 50%;
+          background: #737373;
           transition: 0.3s;
         }
 
         .cmp-toggle input:checked + .cmp-toggle-slider {
-          background: #f97316;
+          background: #c2410c;
         }
 
         .cmp-toggle input:checked + .cmp-toggle-slider:before {
-          transform: translateX(20px);
+          transform: translateX(18px);
+          background: #ffffff;
         }
 
         .cmp-toggle input:disabled + .cmp-toggle-slider {
@@ -378,12 +391,16 @@ export function CookieConsent() {
                     style={{
                       background: "none",
                       border: "none",
-                      color: "#60a5fa",
+                      color: "#a3a3a3",
                       textDecoration: "underline",
+                      textUnderlineOffset: "2px",
                       cursor: "pointer",
                       padding: 0,
                       font: "inherit",
+                      transition: "color 0.2s ease",
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#fafafa")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#a3a3a3")}
                   >
                     configurar tus preferencias
                   </button>
