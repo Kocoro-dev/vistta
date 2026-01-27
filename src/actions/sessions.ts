@@ -1,9 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendDiscordNotification } from "@/lib/discord";
 import type { SessionRecord, Attribution, NotifyPayload } from "@/types/attribution";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 /**
  * Save a session record to the database.
@@ -137,26 +136,13 @@ export async function getSessionHistory(
 
 /**
  * Send a notification to Discord.
- * This calls the /api/notify endpoint internally.
+ * Calls Discord webhook directly from server action.
  */
 export async function sendNotification(
   payload: NotifyPayload
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const response = await fetch(`${APP_URL}/api/notify`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.error || "Failed to send notification" };
-    }
-
-    return { success: true };
+    return await sendDiscordNotification(payload);
   } catch (error) {
     console.error("Send notification error:", error);
     return { success: false, error: "Failed to send notification" };
