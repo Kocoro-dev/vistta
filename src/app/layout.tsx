@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Geist_Mono, Bricolage_Grotesque, Manrope } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll";
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const GTM_ID = "GTM-5PDBMJRW";
@@ -38,6 +39,42 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        {/* Google Consent Mode v2 - MUST load BEFORE GTM */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+
+              // Set default consent state to denied
+              gtag('consent', 'default', {
+                'ad_storage': 'denied',
+                'analytics_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
+                'wait_for_update': 500
+              });
+
+              // Check for existing consent in localStorage
+              (function() {
+                try {
+                  var consent = localStorage.getItem('vistta_cookie_consent');
+                  var prefs = localStorage.getItem('vistta_cookie_prefs');
+
+                  if (consent === 'accepted' && prefs) {
+                    var p = JSON.parse(prefs);
+                    gtag('consent', 'update', {
+                      'ad_storage': p.marketing ? 'granted' : 'denied',
+                      'analytics_storage': p.analytics ? 'granted' : 'denied',
+                      'ad_user_data': p.marketing ? 'granted' : 'denied',
+                      'ad_personalization': p.marketing ? 'granted' : 'denied'
+                    });
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
         <Script
           id="gtm-script"
           strategy="afterInteractive"
@@ -67,6 +104,7 @@ export default function RootLayout({
           {children}
         </SmoothScrollProvider>
         <Toaster position="bottom-right" />
+        <CookieConsent />
       </body>
     </html>
   );
