@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, Mail, ArrowLeft, CheckCircle2, User, Check } from "lucide-react";
+import { Loader2, Mail, ArrowLeft, CheckCircle2, User, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type ViewState = "form" | "email-sent";
+
+interface FieldErrors {
+  fullName?: string;
+  email?: string;
+  terms?: string;
+}
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<"google" | "email" | null>(null);
@@ -13,9 +19,40 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const validateField = (field: string, value: string | boolean): string | undefined => {
+    switch (field) {
+      case "fullName":
+        if (!String(value).trim()) return "Introduce tu nombre";
+        return undefined;
+      case "email":
+        if (!value) return "Introduce tu email";
+        if (!emailRegex.test(String(value))) return "Email no válido";
+        return undefined;
+      case "terms":
+        if (!value) return "Debes aceptar los términos";
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const handleFieldChange = (field: keyof FieldErrors, value: string | boolean) => {
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
 
   const handleOAuthLogin = async (provider: "google") => {
-    if (!acceptedTerms) {
+    const termsError = validateField("terms", acceptedTerms);
+    if (termsError) {
+      setErrors((prev) => ({ ...prev, terms: termsError }));
+      setTouched((prev) => ({ ...prev, terms: true }));
       toast.error("Debes aceptar los términos y la política de privacidad");
       return;
     }
@@ -40,25 +77,23 @@ export default function LoginPage() {
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName.trim()) {
-      toast.error("Por favor, introduce tu nombre");
-      return;
-    }
+    // Validate all fields
+    const newErrors: FieldErrors = {
+      fullName: validateField("fullName", fullName),
+      email: validateField("email", email),
+      terms: validateField("terms", acceptedTerms),
+    };
 
-    if (!email) {
-      toast.error("Por favor, introduce tu email");
-      return;
-    }
+    setErrors(newErrors);
+    setTouched({ fullName: true, email: true, terms: true });
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Por favor, introduce un email válido");
-      return;
-    }
-
-    if (!acceptedTerms) {
-      toast.error("Debes aceptar los términos y la política de privacidad");
+    const hasErrors = newErrors.fullName || newErrors.email || newErrors.terms;
+    if (hasErrors) {
+      // Show toast for first error found
+      const firstError = newErrors.fullName || newErrors.email || newErrors.terms;
+      if (firstError) {
+        toast.error(firstError);
+      }
       return;
     }
 
@@ -158,7 +193,12 @@ export default function LoginPage() {
               {/* Magic Link Form */}
               <form onSubmit={handleMagicLink} className="space-y-4 mb-6">
                 <div>
-                  <label htmlFor="fullName" className="block text-[13px] font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="fullName"
+                    className={`block text-[13px] font-medium mb-2 transition-colors ${
+                      errors.fullName && touched.fullName ? "text-red-600" : "text-neutral-700"
+                    }`}
+                  >
                     Nombre completo
                   </label>
                   <div className="relative">
@@ -166,18 +206,47 @@ export default function LoginPage() {
                       id="fullName"
                       type="text"
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        handleFieldChange("fullName", e.target.value);
+                      }}
+                      onBlur={() => {
+                        setTouched((prev) => ({ ...prev, fullName: true }));
+                        const error = validateField("fullName", fullName);
+                        if (error) setErrors((prev) => ({ ...prev, fullName: error }));
+                      }}
                       placeholder="María García"
-                      className="w-full h-12 px-4 pl-11 border border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 outline-none transition-all text-[14px] placeholder:text-neutral-400"
+                      className={`w-full h-12 px-4 pl-11 border outline-none transition-all text-[14px] placeholder:text-neutral-400 ${
+                        errors.fullName && touched.fullName
+                          ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100 bg-red-50/30"
+                          : "border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
+                      }`}
                       disabled={isLoading !== null}
                       autoFocus
+                      aria-invalid={errors.fullName && touched.fullName ? "true" : "false"}
+                      aria-describedby={errors.fullName ? "fullName-error" : undefined}
                     />
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                    <User className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
+                      errors.fullName && touched.fullName ? "text-red-400" : "text-neutral-400"
+                    }`} />
+                    {errors.fullName && touched.fullName && (
+                      <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                    )}
                   </div>
+                  {errors.fullName && touched.fullName && (
+                    <p id="fullName-error" className="mt-1.5 text-[12px] text-red-600 flex items-center gap-1">
+                      {errors.fullName}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-[13px] font-medium text-neutral-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className={`block text-[13px] font-medium mb-2 transition-colors ${
+                      errors.email && touched.email ? "text-red-600" : "text-neutral-700"
+                    }`}
+                  >
                     Email
                   </label>
                   <div className="relative">
@@ -185,41 +254,82 @@ export default function LoginPage() {
                       id="email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        handleFieldChange("email", e.target.value);
+                      }}
+                      onBlur={() => {
+                        setTouched((prev) => ({ ...prev, email: true }));
+                        const error = validateField("email", email);
+                        if (error) setErrors((prev) => ({ ...prev, email: error }));
+                      }}
                       placeholder="tu@email.com"
-                      className="w-full h-12 px-4 pl-11 border border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 outline-none transition-all text-[14px] placeholder:text-neutral-400"
+                      className={`w-full h-12 px-4 pl-11 border outline-none transition-all text-[14px] placeholder:text-neutral-400 ${
+                        errors.email && touched.email
+                          ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100 bg-red-50/30"
+                          : "border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
+                      }`}
                       disabled={isLoading !== null}
+                      aria-invalid={errors.email && touched.email ? "true" : "false"}
+                      aria-describedby={errors.email ? "email-error" : undefined}
                     />
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                    <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
+                      errors.email && touched.email ? "text-red-400" : "text-neutral-400"
+                    }`} />
+                    {errors.email && touched.email && (
+                      <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                    )}
                   </div>
+                  {errors.email && touched.email && (
+                    <p id="email-error" className="mt-1.5 text-[12px] text-red-600 flex items-center gap-1">
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* Terms Checkbox */}
-                <div className="flex items-start gap-3">
-                  <button
-                    type="button"
-                    role="checkbox"
-                    aria-checked={acceptedTerms}
-                    onClick={() => setAcceptedTerms(!acceptedTerms)}
-                    className={`mt-0.5 flex-shrink-0 h-5 w-5 border rounded transition-all flex items-center justify-center ${
-                      acceptedTerms
-                        ? "bg-neutral-900 border-neutral-900"
-                        : "border-neutral-300 hover:border-neutral-400"
-                    }`}
-                    disabled={isLoading !== null}
-                  >
-                    {acceptedTerms && <Check className="h-3 w-3 text-white" />}
-                  </button>
-                  <label className="text-[13px] text-neutral-600 leading-relaxed">
-                    He leído y acepto los{" "}
-                    <Link href="/terminos" target="_blank" className="text-neutral-900 hover:underline font-medium">
-                      términos de servicio
-                    </Link>{" "}
-                    y la{" "}
-                    <Link href="/privacidad" target="_blank" className="text-neutral-900 hover:underline font-medium">
-                      política de privacidad
-                    </Link>
-                  </label>
+                <div>
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={acceptedTerms}
+                      aria-invalid={errors.terms && touched.terms ? "true" : "false"}
+                      onClick={() => {
+                        setAcceptedTerms(!acceptedTerms);
+                        if (errors.terms) {
+                          setErrors((prev) => ({ ...prev, terms: undefined }));
+                        }
+                      }}
+                      className={`mt-0.5 flex-shrink-0 h-5 w-5 border rounded transition-all flex items-center justify-center ${
+                        acceptedTerms
+                          ? "bg-neutral-900 border-neutral-900"
+                          : errors.terms && touched.terms
+                          ? "border-red-400 bg-red-50/50"
+                          : "border-neutral-300 hover:border-neutral-400"
+                      }`}
+                      disabled={isLoading !== null}
+                    >
+                      {acceptedTerms && <Check className="h-3 w-3 text-white" />}
+                    </button>
+                    <label className={`text-[13px] leading-relaxed transition-colors ${
+                      errors.terms && touched.terms ? "text-red-600" : "text-neutral-600"
+                    }`}>
+                      He leído y acepto los{" "}
+                      <Link href="/terminos" target="_blank" className="text-neutral-900 hover:underline font-medium">
+                        términos de servicio
+                      </Link>{" "}
+                      y la{" "}
+                      <Link href="/privacidad" target="_blank" className="text-neutral-900 hover:underline font-medium">
+                        política de privacidad
+                      </Link>
+                    </label>
+                  </div>
+                  {errors.terms && touched.terms && (
+                    <p className="mt-1.5 text-[12px] text-red-600 flex items-center gap-1 ml-8">
+                      {errors.terms}
+                    </p>
+                  )}
                 </div>
 
                 <button
