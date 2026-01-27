@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createCheckoutSession } from "@/actions/payments";
+import { useAttribution } from "@/hooks/use-attribution";
 import { toast } from "sonner";
 import { Check, Loader2 } from "lucide-react";
 import type { PlanType } from "@/types/database";
@@ -28,6 +29,7 @@ export function PricingCardCheckout({
   disabledText = "Plan activo",
 }: PricingCardCheckoutProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const { attribution } = useAttribution({ fetchGeo: false });
 
   const handleCheckout = async () => {
     if (disabled) return;
@@ -35,7 +37,11 @@ export function PricingCardCheckout({
     setIsLoading(true);
 
     try {
-      const result = await createCheckoutSession(plan.id as PlanType);
+      // Pass visitor_id for attribution tracking
+      const result = await createCheckoutSession(
+        plan.id as PlanType,
+        attribution?.visitor_id
+      );
 
       if (result.error) {
         toast.error(result.error);

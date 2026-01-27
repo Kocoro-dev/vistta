@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import { sendDiscordNotification } from "@/lib/discord";
+import { PLAN_CONFIG } from "@/lib/lemonsqueezy";
 
 // LemonSqueezy webhook event types we handle
 type WebhookEventName =
@@ -18,6 +20,7 @@ interface LemonSqueezyWebhookPayload {
       user_id?: string;
       plan_type?: string;
       credits?: string;
+      visitor_id?: string;
     };
   };
   data: {
@@ -172,10 +175,14 @@ async function handleOrderCreated(
   userId: string
 ) {
   const attributes = data.data.attributes;
+  const customData = data.meta.custom_data;
   const orderId = data.data.id;
-  const credits = parseInt(data.meta.custom_data?.credits || "10", 10);
+  const credits = parseInt(customData?.credits || "10", 10);
   const amount = attributes.total || 1900; // cents
   const invoiceUrl = attributes.urls?.receipt || null;
+  const visitorId = customData?.visitor_id;
+  const planType = (customData?.plan_type || "ocasional") as keyof typeof PLAN_CONFIG;
+  const userEmail = attributes.user_email || "";
 
   console.log(`Processing order ${orderId} for user ${userId}, adding ${credits} credits`);
 
@@ -217,6 +224,46 @@ async function handleOrderCreated(
     throw profileError;
   }
 
+  // Fetch attribution data from sessions table using visitor_id
+  let attribution: Record<string, unknown> = { utm_source: "direct" };
+  if (visitorId) {
+    const { data: sessionData } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("visitor_id", visitorId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (sessionData) {
+      attribution = {
+        visitor_id: visitorId,
+        session_number: sessionData.session_number,
+        utm_source: sessionData.utm_source || "direct",
+        utm_medium: sessionData.utm_medium,
+        utm_campaign: sessionData.utm_campaign,
+        country: sessionData.country,
+        city: sessionData.city,
+        device_type: sessionData.device_type,
+        browser: sessionData.browser,
+      };
+    }
+  }
+
+  // Send Discord notification
+  await sendDiscordNotification({
+    event_type: "new_sale",
+    user_email: userEmail,
+    user_id: userId,
+    attribution,
+    metadata: {
+      plan: PLAN_CONFIG[planType]?.name || planType,
+      importe: `${(amount / 100).toFixed(2)}€`,
+      creditos: credits.toString(),
+      order_id: orderId,
+    },
+  });
+
   console.log(`Order ${orderId} processed: +${credits} credits for user ${userId}`);
 }
 
@@ -226,15 +273,19 @@ async function handleSubscriptionCreated(
   userId: string
 ) {
   const attributes = data.data.attributes;
+  const customData = data.meta.custom_data;
   const subscriptionId = data.data.id;
   const renewsAt = attributes.renews_at;
+  const visitorId = customData?.visitor_id;
+  const userEmail = attributes.user_email || "";
+  const amount = 5900; // 59€ in cents
 
   console.log(`Processing subscription ${subscriptionId} for user ${userId}`);
 
   // Create payment record
   const { error: paymentError } = await supabase.from("payments").insert({
     user_id: userId,
-    amount: 5900, // 59€ in cents
+    amount: amount,
     plan_type: "agencia",
     status: "completed",
     stripe_session_id: subscriptionId,
@@ -262,6 +313,46 @@ async function handleSubscriptionCreated(
     console.error("Error updating profile:", profileError);
     throw profileError;
   }
+
+  // Fetch attribution data from sessions table using visitor_id
+  let attribution: Record<string, unknown> = { utm_source: "direct" };
+  if (visitorId) {
+    const { data: sessionData } = await supabase
+      .from("sessions")
+      .select("*")
+      .eq("visitor_id", visitorId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (sessionData) {
+      attribution = {
+        visitor_id: visitorId,
+        session_number: sessionData.session_number,
+        utm_source: sessionData.utm_source || "direct",
+        utm_medium: sessionData.utm_medium,
+        utm_campaign: sessionData.utm_campaign,
+        country: sessionData.country,
+        city: sessionData.city,
+        device_type: sessionData.device_type,
+        browser: sessionData.browser,
+      };
+    }
+  }
+
+  // Send Discord notification
+  await sendDiscordNotification({
+    event_type: "new_sale",
+    user_email: userEmail,
+    user_id: userId,
+    attribution,
+    metadata: {
+      plan: PLAN_CONFIG.agencia.name,
+      importe: `${(amount / 100).toFixed(2)}€/mes`,
+      tipo: "Suscripción",
+      subscription_id: subscriptionId,
+    },
+  });
 
   console.log(`Subscription ${subscriptionId} created for user ${userId}`);
 }

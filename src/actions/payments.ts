@@ -64,8 +64,13 @@ export async function getSubscriptionStatus() {
 
 /**
  * Creates a LemonSqueezy checkout session and returns the checkout URL
+ * @param planType - The plan to purchase
+ * @param visitorId - The visitor ID from attribution cookie (for tracking)
  */
-export async function createCheckoutSession(planType: PlanType) {
+export async function createCheckoutSession(
+  planType: PlanType,
+  visitorId?: string
+) {
   const supabase = await createClient();
 
   const {
@@ -95,15 +100,20 @@ export async function createCheckoutSession(planType: PlanType) {
   // Get plan config
   const planConfig = PLAN_CONFIG[planType];
 
+  // Redirect URL - our custom success page
+  const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`;
+
   // Create LemonSqueezy checkout
   const result = await createCheckout({
     variantId,
     userId: user.id,
     userEmail: profile?.email || user.email || "",
     userName: profile?.full_name || undefined,
+    redirectUrl,
     customData: {
       plan_type: planType,
       credits: planConfig.credits?.toString() || "unlimited",
+      visitor_id: visitorId || "",
     },
   });
 
