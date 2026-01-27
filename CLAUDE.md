@@ -60,6 +60,9 @@ Create `.env.local` and configure:
 - `LEMONSQUEEZY_OCASIONAL_VARIANT_ID` - Variant ID for Pack Ocasional
 - `LEMONSQUEEZY_AGENCIA_VARIANT_ID` - Variant ID for Plan Agencia
 
+### Marketing & Analytics
+- `DISCORD_WEBHOOK_URL` - Discord webhook for notifications (sales, visits)
+
 ### App
 - `NEXT_PUBLIC_APP_URL` - Public URL (https://www.visttahome.com)
 
@@ -88,6 +91,7 @@ src/
 │   ├── privacidad/             # Política de privacidad
 │   ├── (protected)/dashboard/  # Galería de generaciones del usuario
 │   ├── (protected)/editor/     # Editor principal de imágenes
+│   ├── (protected)/payment/success/ # Página de confirmación de pago
 │   ├── admin/                  # Panel de administración
 │   │   ├── login/              # Login admin (credenciales hardcoded)
 │   │   ├── (dashboard)/        # Dashboard admin
@@ -95,18 +99,28 @@ src/
 │   │   ├── (dashboard)/media/  # Gestión de media
 │   │   └── (dashboard)/user-panel/ # Gestión de usuarios
 │   ├── api/webhooks/replicate/ # Webhook para Replicate
-│   ├── api/fal/proxy/          # Proxy para FAL.ai
+│   ├── api/webhooks/lemonsqueezy/ # Webhook para pagos LemonSqueezy
+│   ├── api/geo/                # Proxy geolocalización (evita Mixed Content)
+│   ├── api/notify/             # Notificaciones Discord
+│   ├── api/fal/proxy/          # Proxy server-side para FAL.ai
 │   └── page.tsx                # Landing page (contenido por defecto aquí)
 ├── components/
 │   ├── ui/                     # shadcn/ui primitives
 │   ├── landing/                # Componentes de landing page
 │   ├── admin/                  # Componentes del admin panel
 │   ├── features/               # Features modulares (pdf-export)
+│   ├── cookie-consent.tsx      # Banner CMP con Google Consent Mode v2
+│   ├── attribution-tracker.tsx # Inicializa tracking de atribución
+│   ├── gtm-attribution-bridge.tsx # Expone atribución a dataLayer/GTM
 │   └── *.tsx                   # Componentes core (header, footer, upload-zone, etc.)
 ├── actions/                    # Server actions
 │   ├── generate-image.ts       # Orquestación de generación de imágenes
 │   ├── upload-image.ts         # Upload y procesamiento de imágenes
+│   ├── payments.ts             # Checkout LemonSqueezy
+│   ├── sessions.ts             # Tracking de sesiones y atribución
 │   └── admin.ts                # Acciones del admin (CRUD contenido, auth)
+├── hooks/
+│   └── use-attribution.ts      # Hook React para consumir datos de atribución
 ├── lib/
 │   ├── supabase/               # Clientes Supabase (server.ts, client.ts, middleware.ts)
 │   ├── google-ai.ts            # Integración Google Gemini
@@ -114,9 +128,13 @@ src/
 │   ├── gemini.ts               # Integración Gemini via FAL.ai
 │   ├── admin-auth.ts           # Autenticación admin (session cookies)
 │   ├── constants.ts            # Límites y whitelist de usuarios
-│   └── content.ts              # Helpers para CMS (getContent, getPageContent)
+│   ├── content.ts              # Helpers para CMS (getContent, getPageContent)
+│   ├── attribution.ts          # Lógica de cookies y UTM tracking
+│   ├── discord.ts              # Envío de notificaciones a Discord
+│   └── lemonsqueezy.ts         # Configuración planes LemonSqueezy
 └── types/
-    ├── database.ts             # Types: Profile, Generation, StylePreset
+    ├── database.ts             # Types: Profile, Generation, StylePreset, Payment
+    ├── attribution.ts          # Types: Attribution, UTMParams, SessionRecord
     └── admin.ts                # Types del admin panel
 ```
 
@@ -127,6 +145,7 @@ Run migrations in order in Supabase SQL Editor:
 2. `supabase/admin-schema.sql` - Panel admin
 3. `supabase/credits-modules-migration.sql` - Sistema de créditos
 4. `supabase/projects-payments-migration.sql` - Proyectos y pagos
+5. `supabase/sessions-migration.sql` - Sistema de atribución y sesiones
 
 ### Tables
 
@@ -158,6 +177,14 @@ Run migrations in order in Supabase SQL Editor:
 - id, page (landing/dashboard/editor/login), section, content (JSONB)
 - Contenido de landing page editable desde admin panel
 - RLS: lectura pública, escritura solo service_role
+
+**`sessions`** - Tracking de visitas y atribución UTM
+- id, visitor_id (UUID persistente en cookie), user_id (nullable, se vincula post-login)
+- session_number, utm_source, utm_medium, utm_campaign, utm_term, utm_content
+- referrer, landing_page, country, city, device_type, browser
+- created_at, updated_at
+- Views: attribution_summary, geo_distribution, device_distribution
+- Ver `MARKETING.md` para documentación completa del sistema
 
 ### Storage Buckets
 
@@ -255,11 +282,36 @@ Componentes en `src/components/landing/`:
 
 ## API Endpoints
 
+### Webhooks
 - `POST /api/webhooks/replicate` - Webhook de Replicate (verifica signature HMAC-SHA256)
 - `GET /api/webhooks/replicate` - Health check
-- `POST /api/webhooks/lemonsqueezy` - Webhook de LemonSqueezy para pagos
+- `POST /api/webhooks/lemonsqueezy` - Webhook de LemonSqueezy para pagos (atribución incluida)
 - `GET /api/webhooks/lemonsqueezy` - Health check
+
+### Proxies y Utilidades
 - `/api/fal/proxy` - Proxy server-side para FAL.ai
+- `GET /api/geo` - Geolocalización server-side (proxy a ip-api.com, evita Mixed Content)
+- `POST /api/notify` - Envío de notificaciones a Discord
+
+## Marketing & Analytics
+
+Sistema completo de tracking documentado en `MARKETING.md`. Resumen:
+
+### Cookie Consent (CMP)
+- Google Consent Mode v2 integrado
+- Banner GDPR con aceptar/rechazar/preferencias
+- Estados: ad_storage, analytics_storage, ad_user_data, ad_personalization
+
+### Attribution System
+- Cookie `app_attribution` (30 días, sin consentimiento requerido)
+- Captura UTM params, visitor_id, device info, geolocalización
+- Persiste entre sesiones, vincula con user_id post-login
+- Integración con dataLayer para GTM
+
+### Purchase Tracking (GA4)
+- Evento `purchase` con ecommerce data en página de éxito
+- Atribución pasa a través de LemonSqueezy custom_data
+- Discord notificaciones con fuente de atribución
 
 ## Notes
 
