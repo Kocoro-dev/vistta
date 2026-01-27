@@ -141,7 +141,7 @@ export function LandingPage({ content }: LandingPageProps) {
         <div className="max-w-[1400px] mx-auto h-16 flex items-center justify-between">
           <div className="flex items-center gap-12">
             <Link href="/" className="flex items-center">
-              <img src="/Vistta-logo.svg" alt="Vistta" className="h-6" />
+              <img src="/logo-negro-Vistta.svg" alt="Vistta" className="h-6" />
             </Link>
 
             {/* Navigation Links */}
@@ -363,7 +363,7 @@ export function LandingPage({ content }: LandingPageProps) {
         <div className="max-w-[1400px] mx-auto">
           <div className="grid md:grid-cols-4 gap-12 mb-16">
             <div>
-              <img src="/Vistta-logo.svg" alt="Vistta" className="h-5" />
+              <img src="/logo-negro-Vistta.svg" alt="Vistta" className="h-5" />
               <p className="text-[14px] text-neutral-500 mt-4 leading-relaxed">
                 {content.footer.brand_description}
               </p>

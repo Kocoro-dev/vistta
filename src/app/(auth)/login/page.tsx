@@ -2,12 +2,24 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, ArrowLeft, CheckCircle2, User, Check } from "lucide-react";
+import { toast } from "sonner";
+
+type ViewState = "form" | "email-sent";
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState<"google" | "github" | null>(null);
+  const [isLoading, setIsLoading] = useState<"google" | "email" | null>(null);
+  const [view, setView] = useState<ViewState>("form");
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const handleOAuthLogin = async (provider: "google" | "github") => {
+  const handleOAuthLogin = async (provider: "google") => {
+    if (!acceptedTerms) {
+      toast.error("Debes aceptar los términos y la política de privacidad");
+      return;
+    }
+
     setIsLoading(provider);
     try {
       const { createClient } = await import("@/lib/supabase/client");
@@ -25,6 +37,68 @@ export default function LoginPage() {
     }
   };
 
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!fullName.trim()) {
+      toast.error("Por favor, introduce tu nombre");
+      return;
+    }
+
+    if (!email) {
+      toast.error("Por favor, introduce tu email");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Por favor, introduce un email válido");
+      return;
+    }
+
+    if (!acceptedTerms) {
+      toast.error("Debes aceptar los términos y la política de privacidad");
+      return;
+    }
+
+    setIsLoading("email");
+
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/callback`,
+          data: {
+            full_name: fullName.trim(),
+          },
+        },
+      });
+
+      if (error) {
+        if (error.message.includes("rate limit")) {
+          toast.error("Has solicitado demasiados enlaces. Espera unos minutos.");
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        setView("email-sent");
+      }
+    } catch (error) {
+      console.error("Magic link error:", error);
+      toast.error("Ha ocurrido un error. Inténtalo de nuevo.");
+    } finally {
+      setIsLoading(null);
+    }
+  };
+
+  const handleBack = () => {
+    setView("form");
+  };
+
   return (
     <div className="min-h-screen bg-white flex">
       {/* Left panel - Branding */}
@@ -38,14 +112,14 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10">
-          <Link href="/" className="text-[15px] font-medium tracking-tight">
-            Vistta
+          <Link href="/" className="inline-block">
+            <img src="/logo-blanco-Vistta.svg" alt="Vistta" className="h-5" />
           </Link>
         </div>
 
         <div className="relative z-10 max-w-md">
           <h1 className="text-[clamp(2rem,4vw,3.5rem)] font-medium text-display leading-[0.95] mb-6">
-            Transforma espacios con IA
+            Transforma satisfacción con IA
           </h1>
           <p className="text-[17px] text-neutral-400 leading-relaxed">
             Virtual staging profesional para agentes inmobiliarios y gestores de propiedades.
@@ -63,58 +137,169 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 lg:p-12">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
-          <Link href="/" className="lg:hidden text-[15px] font-medium tracking-tight text-neutral-900 mb-12 block">
-            Vistta
+          <Link href="/" className="lg:hidden mb-12 block">
+            <img src="/logo-negro-Vistta.svg" alt="Vistta" className="h-5" />
           </Link>
 
-          <div className="mb-10">
-            <span className="text-label text-neutral-400 mb-4 block">Acceso</span>
-            <h2 className="text-[28px] font-medium text-neutral-900 text-editorial leading-[1.1]">
-              Continuar con tu cuenta
-            </h2>
-          </div>
+          {view === "form" ? (
+            <>
+              <div className="mb-8">
+                <span className="text-label text-neutral-400 mb-4 block">
+                  Acceso
+                </span>
+                <h2 className="text-[28px] font-medium text-neutral-900 text-editorial leading-[1.1]">
+                  Entra en tu cuenta
+                </h2>
+                <p className="text-[15px] text-neutral-500 mt-3">
+                  Te enviaremos un enlace mágico a tu email. Sin contraseñas.
+                </p>
+              </div>
 
-          <div className="space-y-3">
-            <button
-              onClick={() => handleOAuthLogin("google")}
-              disabled={isLoading !== null}
-              className="w-full flex items-center justify-center gap-3 border border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading === "google" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <GoogleIcon className="h-4 w-4" />
-              )}
-              Continuar con Google
-            </button>
+              {/* Magic Link Form */}
+              <form onSubmit={handleMagicLink} className="space-y-4 mb-6">
+                <div>
+                  <label htmlFor="fullName" className="block text-[13px] font-medium text-neutral-700 mb-2">
+                    Nombre completo
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="María García"
+                      className="w-full h-12 px-4 pl-11 border border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 outline-none transition-all text-[14px] placeholder:text-neutral-400"
+                      disabled={isLoading !== null}
+                      autoFocus
+                    />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  </div>
+                </div>
 
-            <button
-              onClick={() => handleOAuthLogin("github")}
-              disabled={isLoading !== null}
-              className="w-full flex items-center justify-center gap-3 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading === "github" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <GithubIcon className="h-4 w-4" />
-              )}
-              Continuar con GitHub
-            </button>
-          </div>
+                <div>
+                  <label htmlFor="email" className="block text-[13px] font-medium text-neutral-700 mb-2">
+                    Email
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      className="w-full h-12 px-4 pl-11 border border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100 outline-none transition-all text-[14px] placeholder:text-neutral-400"
+                      disabled={isLoading !== null}
+                    />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+                  </div>
+                </div>
 
-          <div className="mt-8 pt-8 border-t border-neutral-100">
-            <p className="text-[13px] text-neutral-500 leading-relaxed">
-              Al continuar, aceptas nuestros{" "}
-              <Link href="#" className="text-neutral-900 hover:underline">
-                términos de servicio
-              </Link>{" "}
-              y{" "}
-              <Link href="#" className="text-neutral-900 hover:underline">
-                política de privacidad
-              </Link>
-              .
-            </p>
-          </div>
+                {/* Terms Checkbox */}
+                <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={acceptedTerms}
+                    onClick={() => setAcceptedTerms(!acceptedTerms)}
+                    className={`mt-0.5 flex-shrink-0 h-5 w-5 border rounded transition-all flex items-center justify-center ${
+                      acceptedTerms
+                        ? "bg-neutral-900 border-neutral-900"
+                        : "border-neutral-300 hover:border-neutral-400"
+                    }`}
+                    disabled={isLoading !== null}
+                  >
+                    {acceptedTerms && <Check className="h-3 w-3 text-white" />}
+                  </button>
+                  <label className="text-[13px] text-neutral-600 leading-relaxed">
+                    He leído y acepto los{" "}
+                    <Link href="/terminos" target="_blank" className="text-neutral-900 hover:underline font-medium">
+                      términos de servicio
+                    </Link>{" "}
+                    y la{" "}
+                    <Link href="/privacidad" target="_blank" className="text-neutral-900 hover:underline font-medium">
+                      política de privacidad
+                    </Link>
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading !== null}
+                  className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading === "email" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : null}
+                  Enviar enlace mágico
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-neutral-200" />
+                </div>
+                <div className="relative flex justify-center text-[12px]">
+                  <span className="bg-white px-4 text-neutral-400">o continúa con</span>
+                </div>
+              </div>
+
+              {/* OAuth buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={() => handleOAuthLogin("google")}
+                  disabled={isLoading !== null}
+                  className="w-full flex items-center justify-center gap-3 border border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-700 h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading === "google" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <GoogleIcon className="h-4 w-4" />
+                  )}
+                  Continuar con Google
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Email Sent View */
+            <div className="text-center">
+              <div className="mb-6 flex justify-center">
+                <div className="h-16 w-16 rounded-full bg-green-50 flex items-center justify-center">
+                  <CheckCircle2 className="h-8 w-8 text-green-600" />
+                </div>
+              </div>
+
+              <h2 className="text-[24px] font-medium text-neutral-900 text-editorial leading-[1.1] mb-3">
+                ¡Revisa tu email, {fullName.split(" ")[0]}!
+              </h2>
+
+              <p className="text-[15px] text-neutral-500 mb-2">
+                Hemos enviado un enlace mágico a:
+              </p>
+
+              <p className="text-[15px] font-medium text-neutral-900 mb-6">
+                {email}
+              </p>
+
+              <div className="bg-neutral-50 border border-neutral-200 p-4 mb-8 text-left">
+                <p className="text-[13px] text-neutral-600 leading-relaxed">
+                  Haz clic en el enlace del email para acceder a tu cuenta. El enlace expira en 1 hora.
+                </p>
+              </div>
+
+              <p className="text-[13px] text-neutral-500 mb-4">
+                ¿No ves el email? Revisa tu carpeta de spam.
+              </p>
+
+              <button
+                onClick={handleBack}
+                className="inline-flex items-center gap-2 text-[14px] font-medium text-neutral-700 hover:text-neutral-900 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Volver al formulario
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -140,14 +325,6 @@ function GoogleIcon({ className }: { className?: string }) {
         fill="currentColor"
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
       />
-    </svg>
-  );
-}
-
-function GithubIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
     </svg>
   );
 }

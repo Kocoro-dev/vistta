@@ -197,7 +197,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
                     <>
                       <div className="flex justify-center mb-2">
                         <img
-                          src="/Vistta-logo-white.svg"
+                          src="/logo-blanco-Vistta.svg"
                           alt="Vistta"
                           className="h-5"
                         />

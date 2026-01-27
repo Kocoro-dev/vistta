@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { X, MapPin } from "lucide-react";
-import { getRandomActivityMessage, getRandomInterval } from "@/lib/activity-messages";
 import { cn } from "@/lib/utils";
 
 interface ToastMessage {
@@ -14,17 +13,45 @@ interface ToastMessage {
   isLeaving: boolean;
 }
 
+interface ActivityResponse {
+  name: string;
+  location: string;
+  action: string;
+  emoji: string;
+  timeAgo: string;
+}
+
+function getRandomInterval(min: number = 15000, max: number = 45000) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export function LiveActivityToast() {
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [isEnabled, setIsEnabled] = useState(true);
 
-  const showToast = useCallback(() => {
+  const fetchActivity = useCallback(async (): Promise<ActivityResponse | null> => {
+    try {
+      const response = await fetch("/api/activity");
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching activity:", error);
+      return null;
+    }
+  }, []);
+
+  const showToast = useCallback(async () => {
     if (!isEnabled) return;
 
-    const message = getRandomActivityMessage();
+    const message = await fetchActivity();
+    if (!message) return;
+
     const newToast: ToastMessage = {
       id: Date.now(),
-      ...message,
+      name: message.name,
+      location: message.location,
+      action: message.action,
+      timeAgo: message.timeAgo,
       isLeaving: false,
     };
 
@@ -49,7 +76,7 @@ export function LiveActivityToast() {
         });
       }, 300);
     }, 8000);
-  }, [isEnabled]);
+  }, [isEnabled, fetchActivity]);
 
   const dismissToast = useCallback(() => {
     setToast((current) => {

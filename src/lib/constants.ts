@@ -1,8 +1,13 @@
 // App constants
-export const ALPHA_LIMIT = 5;
+export const FREE_CREDITS = 3;
 
 // Users with unlimited generations (admin/testing)
 export const UNLIMITED_USERS = [
-  "jordig88@gmail.com",
   "jordi@kingseo.es",
 ];
+
+// Module types
+export const MODULES = {
+  ENHANCE: "enhance",
+  VISION: "vision",
+} as const;

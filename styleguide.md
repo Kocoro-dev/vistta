@@ -8,7 +8,7 @@ Sistema de diseño basado en minimalismo editorial, inspirado en General Catalys
 
 | Uso | Fuente | Variable CSS |
 |-----|--------|--------------|
-| Títulos (h1-h6) | **Space Grotesk** | `--font-heading` |
+| Títulos (h1-h6) | **Bricolage Grotesque** | `--font-heading` |
 | Párrafos y texto | **Manrope** | `--font-sans` |
 | Código | Geist Mono | `--font-mono` |
 

@@ -9,8 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Plus } from "lucide-react";
+import { UserAvatar } from "@/components/user-avatar";
+import { CreditsIndicator } from "@/components/credits-indicator";
+import { LogOut, User, Plus, CreditCard } from "lucide-react";
 import type { Profile } from "@/types/database";
+import { UNLIMITED_USERS } from "@/lib/constants";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -27,18 +30,12 @@ export function Header({ profile }: HeaderProps) {
     router.refresh();
   };
 
-  const initials = profile?.full_name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || profile?.email?.[0]?.toUpperCase() || "U";
-
   return (
     <header className="border-b border-neutral-200 bg-white">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12 h-16 flex items-center justify-between">
         <div className="flex items-center gap-12">
           <Link href="/dashboard" className="flex items-center">
-            <img src="/Vistta-logo.svg" alt="Vistta" className="h-6" />
+            <img src="/logo-negro-Vistta.svg" alt="Vistta" className="h-6" />
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <Link
@@ -51,6 +48,13 @@ export function Header({ profile }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-4">
+          {profile && (
+            <CreditsIndicator
+              credits={profile.credits}
+              hasPurchased={profile.has_purchased || (profile.email ? UNLIMITED_USERS.includes(profile.email) : false)}
+            />
+          )}
+
           <Link
             href="/editor"
             className="hidden sm:inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 text-[13px] font-medium transition-all"
@@ -61,16 +65,13 @@ export function Header({ profile }: HeaderProps) {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-8 w-8 rounded-full bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center text-[13px] font-medium text-neutral-700 transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
-                {profile?.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={profile?.full_name || "Usuario"}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  initials
-                )}
+              <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2">
+                <UserAvatar
+                  src={profile?.avatar_url}
+                  name={profile?.full_name}
+                  email={profile?.email}
+                  size="sm"
+                />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end">
@@ -86,9 +87,15 @@ export function Header({ profile }: HeaderProps) {
               </div>
               <div className="py-1">
                 <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="cursor-pointer flex items-center gap-2 px-3 py-2">
+                  <Link href="/cuenta/perfil" className="cursor-pointer flex items-center gap-2 px-3 py-2">
                     <User className="h-4 w-4 text-neutral-400" />
-                    <span className="text-[14px]">Mi Cuenta</span>
+                    <span className="text-[14px]">Mi Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/cuenta/pagos" className="cursor-pointer flex items-center gap-2 px-3 py-2">
+                    <CreditCard className="h-4 w-4 text-neutral-400" />
+                    <span className="text-[14px]">Pagos</span>
                   </Link>
                 </DropdownMenuItem>
               </div>

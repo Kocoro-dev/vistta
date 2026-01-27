@@ -121,7 +121,7 @@ const defaultContent: LandingContent = {
         features: [
           "Vistta Enhance + Vision",
           "Todos los estilos disponibles",
-          "Resolución 4K",
+          "Resolución HD",
           "Sin marcas de agua",
           "Soporte por email",
         ],
@@ -129,16 +129,16 @@ const defaultContent: LandingContent = {
         highlighted: false,
       },
       {
-        name: "Plan Profesional",
+        name: "Plan Agencia",
         price: "59€",
         period: "/mes",
         description: "100 imágenes al mes · Cancela cuando quieras",
         features: [
-          "Todo del pack Ocasional",
-          "100 imágenes mensuales",
+          "Vistta Enhance + Vision",
+          "Todos los estilos disponibles",
+          "Resolución HD",
           "Prioridad GPU (más rápido)",
           "Soporte prioritario",
-          "Facturación automática",
         ],
         cta: "Empezar ahora",
         highlighted: true,
@@ -152,7 +152,7 @@ const defaultContent: LandingContent = {
     items: [
       { question: "¿Es legal usar estas fotos en Idealista/Airbnb?", answer: "Sí, siempre que indiques que es una \"Recreación Virtual\" o \"Propuesta de Decoración\". Vistta incluye una pequeña marca de agua opcional que dice \"Virtual Staging\" para que seas transparente con los compradores." },
       { question: "¿La IA cambia la estructura de la casa?", answer: "No. Nuestra tecnología respeta las paredes, ventanas, suelos y techos. Solo cambiamos el mobiliario y la decoración. El comprador reconocerá el espacio al visitarlo." },
-      { question: "¿Qué calidad tienen las imágenes?", answer: "Las imágenes se generan en alta resolución (hasta 4K) con calidad fotorrealista. Son perfectas para publicar en portales inmobiliarios o redes sociales." },
+      { question: "¿Qué calidad tienen las imágenes?", answer: "Las imágenes se generan en alta resolución HD con calidad fotorrealista. Son perfectas para publicar en portales inmobiliarios o redes sociales." },
       { question: "¿Cuánto tiempo tarda en generarse?", answer: "Normalmente entre 10 y 20 segundos. Sube tu foto, elige el estilo, y en menos de medio minuto tienes tu render listo para publicar." },
       { question: "¿Cuál es la diferencia entre Enhance y Vision?", answer: "Enhance mejora fotos de espacios ya amueblados (mejor luz, sin desorden). Vision amuebla espacios vacíos. Ambos incluidos en todos los planes." },
     ],
@@ -168,7 +168,7 @@ const defaultContent: LandingContent = {
     columns: [
       { title: "Producto", links: [{ label: "Comenzar", href: "/login" }, { label: "Precios", href: "#pricing" }, { label: "FAQ", href: "#faq" }] },
       { title: "Cobertura", links: [{ label: "Home Staging Tenerife", href: "#" }, { label: "Home Staging Gran Canaria", href: "#" }, { label: "Decoración Virtual", href: "#" }] },
-      { title: "Legal", links: [{ label: "Términos", href: "#" }, { label: "Privacidad", href: "#" }] },
+      { title: "Legal", links: [{ label: "Términos", href: "/terminos" }, { label: "Privacidad", href: "/privacidad" }] },
     ],
     copyright: "Vistta · Hecho en Canarias",
   },
