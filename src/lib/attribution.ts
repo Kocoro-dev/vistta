@@ -268,7 +268,7 @@ export function initAttribution(): Attribution {
 }
 
 // ============================================
-// Geo Info Fetching (Client-side)
+// Geo Info Fetching (via server-side API)
 // ============================================
 
 export async function fetchGeoInfo(): Promise<{
@@ -280,27 +280,14 @@ export async function fetchGeoInfo(): Promise<{
   isp: string | null;
 }> {
   try {
-    // Using ip-api.com (free, no API key needed, 45 req/min limit)
-    const response = await fetch("http://ip-api.com/json/?fields=status,country,countryCode,regionName,city,timezone,isp");
+    // Use our server-side API to avoid Mixed Content issues
+    const response = await fetch("/api/geo");
 
     if (!response.ok) {
       throw new Error("Geo API request failed");
     }
 
-    const data = await response.json();
-
-    if (data.status !== "success") {
-      throw new Error("Geo API returned error status");
-    }
-
-    return {
-      country: data.country || null,
-      country_code: data.countryCode || null,
-      region: data.regionName || null,
-      city: data.city || null,
-      timezone: data.timezone || null,
-      isp: data.isp || null,
-    };
+    return await response.json();
   } catch (error) {
     console.warn("Failed to fetch geo info:", error);
     return {
