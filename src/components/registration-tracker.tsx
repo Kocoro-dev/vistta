@@ -15,10 +15,16 @@ export function RegistrationTracker({ userEmail }: RegistrationTrackerProps) {
   const hasTracked = useRef(false);
 
   useEffect(() => {
-    const isRegistered = searchParams.get("registered") === "true";
+    // Check both URL param (from callback) and localStorage flag (from registration page)
+    const isRegisteredFromUrl = searchParams.get("registered") === "true";
+    const isRegisteredFromStorage = localStorage.getItem("vistta_pending_registration") === "true";
+    const isRegistered = isRegisteredFromUrl || isRegisteredFromStorage;
 
     if (!isRegistered || hasTracked.current) return;
     hasTracked.current = true;
+
+    // Clear the localStorage flag
+    localStorage.removeItem("vistta_pending_registration");
 
     // Ensure dataLayer exists
     window.dataLayer = window.dataLayer || [];
@@ -26,7 +32,7 @@ export function RegistrationTracker({ userEmail }: RegistrationTrackerProps) {
     // Push sign_up event for GTM (GA4 + Facebook)
     window.dataLayer.push({
       event: "sign_up",
-      method: "email", // or could detect google vs magic link
+      method: isRegisteredFromStorage ? "registration_flow" : "email",
       user_data: {
         email: userEmail || "",
       },
@@ -38,11 +44,13 @@ export function RegistrationTracker({ userEmail }: RegistrationTrackerProps) {
       },
     });
 
-    console.log("Registration tracked:", { email: userEmail });
+    console.log("Registration tracked:", { email: userEmail, source: isRegisteredFromStorage ? "localStorage" : "url" });
 
-    // Clean up URL (remove ?registered=true)
-    const newUrl = window.location.pathname;
-    router.replace(newUrl, { scroll: false });
+    // Clean up URL if it has the registered param
+    if (isRegisteredFromUrl) {
+      const newUrl = window.location.pathname;
+      router.replace(newUrl, { scroll: false });
+    }
   }, [searchParams, attribution, userEmail, router]);
 
   return null;

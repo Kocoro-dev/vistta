@@ -59,6 +59,9 @@ export default function RegistroPage() {
 
     setIsLoading(provider);
     try {
+      // Mark as pending registration for analytics tracking
+      localStorage.setItem("vistta_pending_registration", "true");
+
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
 
@@ -70,6 +73,7 @@ export default function RegistroPage() {
       });
     } catch (error) {
       console.error("OAuth error:", error);
+      localStorage.removeItem("vistta_pending_registration");
       setIsLoading(null);
     }
   };
@@ -111,6 +115,11 @@ export default function RegistroPage() {
           },
         },
       });
+
+      if (!error) {
+        // Mark as pending registration for analytics tracking
+        localStorage.setItem("vistta_pending_registration", "true");
+      }
 
       if (error) {
         if (error.message.includes("rate limit")) {
