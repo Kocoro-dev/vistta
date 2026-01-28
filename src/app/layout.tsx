@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   title: "Vistta | Transformación Visual Inmobiliaria",
   description:
     "Transforma espacios con inteligencia artificial. Redecora y renueva habitaciones virtualmente.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
