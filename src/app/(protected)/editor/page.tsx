@@ -9,6 +9,10 @@ import { UploadZone } from "@/components/upload-zone";
 import { StyleSelector } from "@/components/style-selector";
 import { ModuleSelector } from "@/components/module-selector";
 import { RoomTypeSelector } from "@/components/room-type-selector";
+import { LightingTypeSelector } from "@/components/lighting-type-selector";
+import { CustomWatermarkToggle } from "@/components/custom-watermark-toggle";
+import { DisclaimerToggle } from "@/components/disclaimer-toggle";
+import { ConfirmationModal } from "@/components/confirmation-modal";
 import { CompareSlider } from "@/components/compare-slider";
 import { NoCreditsModal } from "@/components/no-credits-modal";
 import { toast } from "sonner";
@@ -21,14 +25,26 @@ export default function EditorPage() {
   const searchParams = useSearchParams();
   const generationId = searchParams.get("id");
 
+  // Image state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(null);
+
+  // Module configuration state
   const [selectedModule, setSelectedModule] = useState<GenerationModule>("vision");
   const [selectedStyle, setSelectedStyle] = useState("modern");
   const [selectedRoomType, setSelectedRoomType] = useState("empty_room");
+  const [selectedLighting, setSelectedLighting] = useState("natural");
+
+  // Watermark/Disclaimer state
+  const [enableWatermark, setEnableWatermark] = useState(false);
+  const [customWatermark, setCustomWatermark] = useState("");
+  const [enableDisclaimer, setEnableDisclaimer] = useState(false);
+
+  // UI state
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [currentGeneration, setCurrentGeneration] = useState<Generation | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [hasPurchased, setHasPurchased] = useState(false);
@@ -119,19 +135,29 @@ export default function EditorPage() {
     setCurrentGeneration(null);
   };
 
-  const handleGenerate = async () => {
+  const handleGenerateClick = () => {
     if (!uploadedImageUrl || !uploadedImagePath) {
       toast.error("Sube una imagen primero");
       return;
     }
 
-    // Check credits before generating (unless user has purchased)
+    // Check credits before showing confirmation
     if (!hasPurchased && credits !== null && credits <= 0) {
       setShowNoCreditsModal(true);
       return;
     }
 
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmGenerate = async () => {
+    if (!uploadedImageUrl || !uploadedImagePath) {
+      toast.error("Sube una imagen primero");
+      return;
+    }
+
     setIsGenerating(true);
+    setShowConfirmation(false);
     toast.info("Generando diseño...");
 
     try {
@@ -141,6 +167,9 @@ export default function EditorPage() {
         styleId: selectedModule === "vision" ? selectedStyle : "enhance",
         module: selectedModule,
         roomTypeId: selectedModule === "vision" ? selectedRoomType : undefined,
+        lightingTypeId: selectedLighting,
+        customWatermarkText: enableWatermark && customWatermark ? customWatermark : undefined,
+        addDisclaimer: enableDisclaimer,
       });
 
       if ("noCredits" in result && result.noCredits) {
@@ -322,41 +351,85 @@ export default function EditorPage() {
 
                 {selectedModule === "vision" && (
                   <>
-                    <StyleSelector
-                      selectedStyle={selectedStyle}
-                      onStyleChange={setSelectedStyle}
-                      disabled={isGenerating || isCompleted}
-                    />
                     <RoomTypeSelector
                       selectedRoomType={selectedRoomType}
                       onRoomTypeChange={setSelectedRoomType}
                       disabled={isGenerating || isCompleted}
                     />
+                    <StyleSelector
+                      selectedStyle={selectedStyle}
+                      onStyleChange={setSelectedStyle}
+                      disabled={isGenerating || isCompleted}
+                    />
                   </>
                 )}
-              </div>
 
-              <button
-                onClick={handleGenerate}
-                disabled={!uploadedImageUrl || isGenerating || isCompleted}
-                className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    {selectedModule === "enhance" ? "Mejorar foto" : "Transformar espacio"}
-                  </>
-                )}
-              </button>
+                <LightingTypeSelector
+                  selectedLighting={selectedLighting}
+                  onLightingChange={setSelectedLighting}
+                  disabled={isGenerating || isCompleted}
+                />
+              </div>
             </div>
+
+            {/* Watermark & Disclaimer Options */}
+            <div className="border border-neutral-200 bg-white p-6">
+              <span className="text-label text-neutral-400 mb-6 block">Opciones de imagen</span>
+
+              <div className="space-y-4">
+                <CustomWatermarkToggle
+                  enabled={enableWatermark}
+                  onEnabledChange={setEnableWatermark}
+                  watermarkText={customWatermark}
+                  onWatermarkTextChange={setCustomWatermark}
+                  disabled={isGenerating || isCompleted}
+                />
+
+                <DisclaimerToggle
+                  enabled={enableDisclaimer}
+                  onEnabledChange={setEnableDisclaimer}
+                  disabled={isGenerating || isCompleted}
+                />
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <button
+              onClick={handleGenerateClick}
+              disabled={!uploadedImageUrl || isGenerating || isCompleted}
+              className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  {selectedModule === "enhance" ? "Mejorar foto" : "Transformar espacio"}
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        open={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={handleConfirmGenerate}
+        isGenerating={isGenerating}
+        imageUrl={uploadedImageUrl}
+        module={selectedModule}
+        styleId={selectedModule === "vision" ? selectedStyle : undefined}
+        roomTypeId={selectedModule === "vision" ? selectedRoomType : undefined}
+        lightingId={selectedLighting}
+        enableWatermark={enableWatermark}
+        watermarkText={customWatermark}
+        enableDisclaimer={enableDisclaimer}
+      />
 
       {/* No credits modal */}
       <NoCreditsModal

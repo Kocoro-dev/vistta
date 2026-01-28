@@ -99,6 +99,117 @@ export async function applyWatermarkFromUrl(imageUrl: string): Promise<Buffer> {
 }
 
 /**
+ * Aplica una marca de agua personalizada con texto del usuario
+ * Posición: centro inferior con fondo semi-transparente
+ */
+export async function applyCustomWatermark(
+  imageBuffer: Buffer,
+  watermarkText: string
+): Promise<Buffer> {
+  const metadata = await sharp(imageBuffer).metadata();
+  const width = metadata.width || 1024;
+  const height = metadata.height || 1024;
+
+  // Tamaño del texto
+  const fontSize = Math.max(16, Math.round(width * 0.022));
+  const textHeight = fontSize + 30;
+  const padding = 20;
+
+  // Calcular ancho aproximado del texto (8px por caracter a 16px font size)
+  const charWidth = fontSize * 0.6;
+  const textWidth = Math.min(watermarkText.length * charWidth + padding * 2, width * 0.8);
+
+  // Crear SVG con fondo semi-transparente centrado
+  const watermarkSvg = `
+    <svg width="${width}" height="${textHeight}" xmlns="http://www.w3.org/2000/svg">
+      <rect
+        x="${(width - textWidth) / 2}"
+        y="0"
+        width="${textWidth}"
+        height="${textHeight}"
+        rx="4"
+        fill="rgba(0,0,0,0.6)"
+      />
+      <text
+        x="50%"
+        y="${textHeight / 2 + fontSize * 0.35}"
+        font-family="Manrope, Arial, sans-serif"
+        font-size="${fontSize}"
+        fill="white"
+        text-anchor="middle"
+      >${escapeXml(watermarkText)}</text>
+    </svg>
+  `;
+
+  const result = await sharp(imageBuffer)
+    .composite([
+      {
+        input: Buffer.from(watermarkSvg),
+        gravity: "south",
+        top: height - textHeight - 60, // Posición encima del disclaimer si existe
+      },
+    ])
+    .webp({ quality: 90 })
+    .toBuffer();
+
+  return result;
+}
+
+/**
+ * Aplica un disclaimer en la parte inferior de la imagen
+ * Barra completa con fondo oscuro semi-transparente
+ */
+export async function applyDisclaimer(
+  imageBuffer: Buffer,
+  disclaimerText: string = "Virtual staging - solo con fines ilustrativos"
+): Promise<Buffer> {
+  const metadata = await sharp(imageBuffer).metadata();
+  const width = metadata.width || 1024;
+
+  const fontSize = Math.max(12, Math.round(width * 0.014));
+  const barHeight = fontSize + 16;
+
+  // Crear SVG del disclaimer
+  const disclaimerSvg = `
+    <svg width="${width}" height="${barHeight}" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="rgba(0,0,0,0.7)"/>
+      <text
+        x="50%"
+        y="${barHeight / 2 + fontSize * 0.35}"
+        font-family="Manrope, Arial, sans-serif"
+        font-size="${fontSize}"
+        fill="rgba(255,255,255,0.9)"
+        text-anchor="middle"
+      >${escapeXml(disclaimerText)}</text>
+    </svg>
+  `;
+
+  const result = await sharp(imageBuffer)
+    .composite([
+      {
+        input: Buffer.from(disclaimerSvg),
+        gravity: "south",
+      },
+    ])
+    .webp({ quality: 90 })
+    .toBuffer();
+
+  return result;
+}
+
+/**
+ * Escapa caracteres especiales para XML/SVG
+ */
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+/**
  * Convierte buffer a data URL
  */
 export function bufferToDataUrl(buffer: Buffer, mimeType: string = "image/webp"): string {

@@ -214,6 +214,59 @@ export type RoomType = {
   instruction: string;
 };
 
+export type LightingType = {
+  id: string;
+  name: string;
+  nameEn: string;
+  description: string;
+  prompt: string;
+};
+
+export const LIGHTING_OPTIONS: LightingType[] = [
+  {
+    id: "natural",
+    name: "Natural",
+    nameEn: "Natural Daylight",
+    description: "Luz del día realista entrando por ventanas",
+    prompt: "natural daylight streaming through windows, realistic sun position, authentic shadows",
+  },
+  {
+    id: "golden_hour",
+    name: "Hora Dorada",
+    nameEn: "Golden Hour",
+    description: "Luz cálida de atardecer, tonos dorados",
+    prompt: "warm golden hour lighting, soft amber tones, long shadows, sunset atmosphere",
+  },
+  {
+    id: "soft_diffuse",
+    name: "Difusa Suave",
+    nameEn: "Soft Diffused",
+    description: "Iluminación uniforme sin sombras duras",
+    prompt: "soft diffused lighting, even illumination, minimal harsh shadows, overcast day feel",
+  },
+  {
+    id: "bright_airy",
+    name: "Luminoso/Aireado",
+    nameEn: "Bright & Airy",
+    description: "Máxima luminosidad, sensación espaciosa",
+    prompt: "bright airy lighting, high key, maximized natural light, spacious feel",
+  },
+  {
+    id: "warm_ambient",
+    name: "Cálido Ambiental",
+    nameEn: "Warm Ambient",
+    description: "Ambiente acogedor con tonos cálidos",
+    prompt: "warm ambient lighting, cozy atmosphere, soft warm tones, inviting mood",
+  },
+  {
+    id: "cool_neutral",
+    name: "Frío/Neutro",
+    nameEn: "Cool Neutral",
+    description: "Tonos fríos, aspecto moderno y limpio",
+    prompt: "cool neutral lighting, clean modern feel, balanced white tones, contemporary mood",
+  },
+];
+
 export const ROOM_TYPES: RoomType[] = [
   {
     id: "living_room",

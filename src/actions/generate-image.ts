@@ -5,10 +5,10 @@ import {
   generateWithFlux,
   buildFluxPrompt,
 } from "@/lib/flux";
-import { STYLE_PRESETS, ROOM_TYPES, type GenerationInsert, type Generation, type GenerationModule, type Profile } from "@/types/database";
+import { STYLE_PRESETS, ROOM_TYPES, LIGHTING_OPTIONS, type GenerationInsert, type Generation, type GenerationModule, type Profile } from "@/types/database";
 import { redirect } from "next/navigation";
 import { FREE_CREDITS, UNLIMITED_USERS } from "@/lib/constants";
-import { applyWatermark, bufferToDataUrl } from "@/lib/watermark";
+import { applyWatermark, applyCustomWatermark, applyDisclaimer, bufferToDataUrl } from "@/lib/watermark";
 
 // AI Provider configuration - change this to switch between providers
 type AIProvider = "flux" | "google-ai" | "gemini-fal";
@@ -21,6 +21,9 @@ interface GenerateImageInput {
   module: GenerationModule;
   customPrompt?: string;
   roomTypeId?: string;
+  lightingTypeId?: string;
+  customWatermarkText?: string;
+  addDisclaimer?: boolean;
 }
 
 // Prompts específicos para cada módulo
@@ -29,6 +32,11 @@ const ENHANCE_BASE_PROMPT = `**Role:** Professional Real Estate Photographer and
 
 **PRIMARY DIRECTIVE: "THE INVISIBLE HAND"**
 Improve the image quality without the viewer realizing it has been altered. The room must remain the exact same room, just perfected.
+
+**CRITICAL CONSTRAINTS - NEVER VIOLATE:**
+1. CAMERA ANGLE: The output image MUST preserve the EXACT camera angle, perspective, and field of view of the input image. Do not rotate, tilt, or shift the viewpoint.
+2. WINDOW VIEWS: Any windows, glass doors, or openings showing exterior views MUST remain EXACTLY as in the original. Do not change, add, remove, or alter what is visible through windows.
+3. ARCHITECTURAL STRUCTURE: Preserve ALL architectural elements exactly as shown - walls, ceiling, floor, doors, windows, built-ins, stairs, columns. Even if the user-selected room type differs from the actual room, DO NOT alter the physical structure. Only change furniture and decor.
 
 **STRICT GEOMETRY & FURNITURE RULES (DO NOT CHANGE):**
 - DO NOT move, remove, or add any furniture.
@@ -52,8 +60,8 @@ Improve the image quality without the viewer realizing it has been altered. The 
 3. **LIGHTING & COLOR:**
    - White balance: correct yellow or blue color casts for neutral, natural tones.
    - Exposure: brighten dark corners, fix overexposed windows (HDR balancing effect).
-   - Atmosphere: create a "Golden Hour" or "Soft Daylight" professional real estate look.
    - Shadows: soften harsh shadows for a warm, welcoming feel.
+   {{LIGHTING_INSTRUCTION}}
 
 4. **PHOTO QUALITY:**
    - Sharpness: crisp, clear details throughout the image.
@@ -68,6 +76,11 @@ AVOID: changing furniture, adding objects, altering room structure, oversaturate
 
 const VISION_BASE_PROMPT = `**Role:** Senior Interior Design Architect specialized in Virtual Staging.
 **Task:** Furnish this empty room to create a high-end, photorealistic listing image.
+
+**CRITICAL CONSTRAINTS - NEVER VIOLATE:**
+1. CAMERA ANGLE: The output image MUST preserve the EXACT camera angle, perspective, and field of view of the input image. Do not rotate, tilt, or shift the viewpoint.
+2. WINDOW VIEWS: Any windows, glass doors, or openings showing exterior views MUST remain EXACTLY as in the original. Do not change, add, remove, or alter what is visible through windows.
+3. ARCHITECTURAL STRUCTURE: Preserve ALL architectural elements exactly as shown - walls, ceiling, floor, doors, windows, built-ins, stairs, columns. Even if the user-selected room type differs from the actual room, DO NOT alter the physical structure. Only change furniture and decor.
 
 **TARGET ROOM FUNCTION:**
 {{ROOM_TYPE_INSTRUCTION}}
@@ -90,6 +103,9 @@ const VISION_BASE_PROMPT = `**Role:** Senior Interior Design Architect specializ
 **ATMOSPHERE:**
 {{STYLE_ATMOSPHERE}}
 
+**LIGHTING:**
+{{LIGHTING_INSTRUCTION}}
+
 **QUALITY SETTINGS:**
 Photorealistic, 8k resolution, Architectural Digest quality, sharp focus, cinematic lighting, professional interior photography.
 
@@ -97,15 +113,27 @@ Photorealistic, 8k resolution, Architectural Digest quality, sharp focus, cinema
 AVOID: cartoonish, low resolution, blurry, distorted perspective, flying furniture, bad anatomy, impossible geometry, neon lights, cluttered, messy, oversaturated colors, watermark, text, signature.`;
 
 // Build Vision prompt with placeholders replaced
-function buildVisionPrompt(styleId: string, roomTypeId?: string): string {
+function buildVisionPrompt(styleId: string, roomTypeId?: string, lightingTypeId?: string): string {
   const style = STYLE_PRESETS.find((s) => s.id === styleId) || STYLE_PRESETS[0];
   const roomType = ROOM_TYPES.find((r) => r.id === roomTypeId) || ROOM_TYPES.find((r) => r.id === "empty_room")!;
+  const lighting = LIGHTING_OPTIONS.find((l) => l.id === lightingTypeId) || LIGHTING_OPTIONS[0];
+
+  const lightingInstruction = `Apply ${lighting.nameEn} lighting: ${lighting.prompt}`;
 
   return VISION_BASE_PROMPT
     .replace("{{ROOM_TYPE_INSTRUCTION}}", roomType.instruction)
     .replace("{{STYLE_NAME}}", style.nameEn)
     .replace("{{STYLE_PROMPT}}", style.prompt)
-    .replace("{{STYLE_ATMOSPHERE}}", style.atmosphere);
+    .replace("{{STYLE_ATMOSPHERE}}", style.atmosphere)
+    .replace("{{LIGHTING_INSTRUCTION}}", lightingInstruction);
+}
+
+// Build Enhance prompt with lighting
+function buildEnhancePrompt(lightingTypeId?: string): string {
+  const lighting = LIGHTING_OPTIONS.find((l) => l.id === lightingTypeId) || LIGHTING_OPTIONS[0];
+  const lightingInstruction = `- Atmosphere: Apply ${lighting.nameEn} lighting effect: ${lighting.prompt}`;
+
+  return ENHANCE_BASE_PROMPT.replace("{{LIGHTING_INSTRUCTION}}", lightingInstruction);
 }
 
 export async function generateImage(input: GenerateImageInput) {
@@ -170,10 +198,10 @@ export async function generateImage(input: GenerateImageInput) {
   let fullPrompt: string;
 
   if (input.module === "enhance") {
-    fullPrompt = ENHANCE_BASE_PROMPT;
+    fullPrompt = buildEnhancePrompt(input.lightingTypeId);
   } else {
     // Vision module - use the new prompt builder
-    fullPrompt = buildVisionPrompt(input.styleId, input.roomTypeId);
+    fullPrompt = buildVisionPrompt(input.styleId, input.roomTypeId, input.lightingTypeId);
   }
 
   if (input.customPrompt) {
@@ -255,21 +283,45 @@ export async function generateImage(input: GenerateImageInput) {
 
     console.log("Generation completed:", generatedImageUrl);
 
-    // Apply watermark if needed (free users)
+    // Apply watermark/disclaimer processing
     let finalImageUrl = generatedImageUrl;
+    let imageBuffer: Buffer = Buffer.from(generatedImageUrl.split(",")[1], "base64");
+
+    // Apply free user watermark if needed
     if (needsWatermark) {
       console.log("Applying watermark for free user...");
       try {
-        const watermarkedBuffer = await applyWatermark(
-          Buffer.from(generatedImageUrl.split(",")[1], "base64")
-        );
-        finalImageUrl = bufferToDataUrl(watermarkedBuffer);
+        imageBuffer = Buffer.from(await applyWatermark(imageBuffer));
         console.log("Watermark applied successfully");
       } catch (watermarkError) {
         console.error("Watermark error (continuing without):", watermarkError);
-        // Continue without watermark if it fails
       }
     }
+
+    // Apply custom watermark if requested
+    if (input.customWatermarkText) {
+      console.log("Applying custom watermark:", input.customWatermarkText);
+      try {
+        imageBuffer = Buffer.from(await applyCustomWatermark(imageBuffer, input.customWatermarkText));
+        console.log("Custom watermark applied successfully");
+      } catch (watermarkError) {
+        console.error("Custom watermark error (continuing without):", watermarkError);
+      }
+    }
+
+    // Apply disclaimer if requested
+    if (input.addDisclaimer) {
+      console.log("Applying disclaimer...");
+      try {
+        imageBuffer = Buffer.from(await applyDisclaimer(imageBuffer));
+        console.log("Disclaimer applied successfully");
+      } catch (disclaimerError) {
+        console.error("Disclaimer error (continuing without):", disclaimerError);
+      }
+    }
+
+    // Convert final buffer to data URL
+    finalImageUrl = bufferToDataUrl(imageBuffer);
 
     // Deduct credit if user is not unlimited and hasn't purchased
     if (!isUnlimited && !hasPurchased && credits > 0) {
