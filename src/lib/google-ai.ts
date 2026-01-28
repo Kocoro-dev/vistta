@@ -50,18 +50,6 @@ Additional note: ${customPrompt}`;
   return fullPrompt;
 }
 
-// Style presets
-export const GOOGLE_AI_STYLE_PROMPTS: Record<string, string> = {
-  modern: "Enhance with clean, bright natural lighting. Fresh and contemporary feel.",
-  minimalist: "Brighten the space subtly. Clean look. Everything in place but cleaner.",
-  luxury: "Premium lighting, richer colors, better shadows. Elevated atmosphere.",
-  coastal: "Bright, airy natural light feeling. Fresh atmosphere.",
-  industrial: "Enhanced contrast, warm lighting. Raw elements visible.",
-  traditional: "Warm, inviting lighting. Cozy atmosphere.",
-  scandinavian: "Light, airy Scandinavian feel. Natural brightness.",
-  mediterranean: "Warm Mediterranean light. Earth tones enhanced.",
-};
-
 // Fetch image and convert to base64
 async function imageUrlToBase64(url: string): Promise<{ base64: string; mimeType: string }> {
   const response = await fetch(url);

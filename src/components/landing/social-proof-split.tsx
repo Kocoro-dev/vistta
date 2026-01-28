@@ -114,7 +114,7 @@ export function SocialProofSplit({ content, className }: SocialProofSplitProps) 
                   Únete a Vistta y empieza a sacar más rendimiento a tus propiedades.
                 </p>
                 <Link
-                  href="/login"
+                  href="/registro"
                   className="group inline-flex items-center justify-center gap-2 bg-white hover:bg-neutral-100 text-neutral-900 px-6 py-3 text-[14px] font-medium transition-all hover:scale-[1.02]"
                 >
                   Empezar ahora

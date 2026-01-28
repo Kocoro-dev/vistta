@@ -150,7 +150,13 @@ export function LandingPage({ content }: LandingPageProps) {
                 href="#plataforma"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('plataforma')?.scrollIntoView({ behavior: 'smooth' });
+                  const lenis = (window as any).lenis;
+                  const target = document.getElementById('plataforma');
+                  if (lenis && target) {
+                    lenis.scrollTo(target, { offset: -80 });
+                  } else if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }}
                 className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
               >
@@ -160,7 +166,13 @@ export function LandingPage({ content }: LandingPageProps) {
                 href="#productos"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('productos')?.scrollIntoView({ behavior: 'smooth' });
+                  const lenis = (window as any).lenis;
+                  const target = document.getElementById('productos');
+                  if (lenis && target) {
+                    lenis.scrollTo(target, { offset: -80 });
+                  } else if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }}
                 className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
               >
@@ -170,7 +182,13 @@ export function LandingPage({ content }: LandingPageProps) {
                 href="#comparativa"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('comparativa')?.scrollIntoView({ behavior: 'smooth' });
+                  const lenis = (window as any).lenis;
+                  const target = document.getElementById('comparativa');
+                  if (lenis && target) {
+                    lenis.scrollTo(target, { offset: -80 });
+                  } else if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }}
                 className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
               >
@@ -180,7 +198,13 @@ export function LandingPage({ content }: LandingPageProps) {
                 href="#precios"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('precios')?.scrollIntoView({ behavior: 'smooth' });
+                  const lenis = (window as any).lenis;
+                  const target = document.getElementById('precios');
+                  if (lenis && target) {
+                    lenis.scrollTo(target, { offset: -80 });
+                  } else if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }}
                 className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
               >
@@ -190,7 +214,13 @@ export function LandingPage({ content }: LandingPageProps) {
                 href="#faq"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                  const lenis = (window as any).lenis;
+                  const target = document.getElementById('faq');
+                  if (lenis && target) {
+                    lenis.scrollTo(target, { offset: -80 });
+                  } else if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                  }
                 }}
                 className="text-[13px] text-neutral-500 hover:text-neutral-900 font-medium transition-colors"
               >
@@ -208,7 +238,7 @@ export function LandingPage({ content }: LandingPageProps) {
               Accede al panel
             </Link>
             <Link
-              href="/login"
+              href="/registro"
               className="bg-neutral-900 hover:bg-neutral-800 text-white px-4 py-2 text-[13px] font-medium transition-all hover:scale-[1.02]"
             >
               Empieza gratis
@@ -249,7 +279,7 @@ export function LandingPage({ content }: LandingPageProps) {
               {/* CTAs */}
               <div ref={heroCTARef} className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/login"
+                  href="/registro"
                   className="hero-cta-btn group inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-6 py-3.5 text-[14px] font-medium transition-all hover:scale-[1.02]"
                 >
                   {content.hero.cta_primary}
@@ -349,7 +379,7 @@ export function LandingPage({ content }: LandingPageProps) {
             {content.cta.description}
           </p>
           <Link
-            href="/login"
+            href="/registro"
             className="final-cta-text group inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-8 py-4 text-[15px] font-medium transition-all hover:scale-[1.02]"
           >
             {content.cta.cta}
@@ -361,30 +391,21 @@ export function LandingPage({ content }: LandingPageProps) {
       {/* 12. Footer */}
       <footer className="py-12 px-6 lg:px-12 border-t border-neutral-200">
         <div className="max-w-[1400px] mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-16">
-            <div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center gap-6">
               <img src="/logo-negro-Vistta.svg" alt="Vistta" className="h-5" />
-              <p className="text-[14px] text-neutral-500 mt-4 leading-relaxed">
-                {content.footer.brand_description}
-              </p>
+              <span className="text-[13px] text-neutral-400">
+                © {new Date().getFullYear()} {content.footer.copyright}
+              </span>
             </div>
-            {content.footer.columns.map((column) => (
-              <div key={column.title}>
-                <h4 className="text-label text-neutral-400 mb-4">{column.title}</h4>
-                <ul className="space-y-3 text-[14px]">
-                  {column.links.map((link) => (
-                    <li key={link.label}>
-                      <Link href={link.href} className="text-neutral-600 hover:text-neutral-900 transition-colors">
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="pt-8 border-t border-neutral-200 text-[13px] text-neutral-400">
-            <p>© {new Date().getFullYear()} {content.footer.copyright}</p>
+            <div className="flex items-center gap-6">
+              <Link href="/terminos" className="text-[13px] text-neutral-500 hover:text-neutral-900 transition-colors">
+                Términos de servicio
+              </Link>
+              <Link href="/privacidad" className="text-[13px] text-neutral-500 hover:text-neutral-900 transition-colors">
+                Política de privacidad
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

@@ -8,6 +8,7 @@ import { generateImage, getGenerationStatus, getUserCreditsStats } from "@/actio
 import { UploadZone } from "@/components/upload-zone";
 import { StyleSelector } from "@/components/style-selector";
 import { ModuleSelector } from "@/components/module-selector";
+import { RoomTypeSelector } from "@/components/room-type-selector";
 import { CompareSlider } from "@/components/compare-slider";
 import { NoCreditsModal } from "@/components/no-credits-modal";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ export default function EditorPage() {
   const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(null);
   const [selectedModule, setSelectedModule] = useState<GenerationModule>("vision");
   const [selectedStyle, setSelectedStyle] = useState("modern");
+  const [selectedRoomType, setSelectedRoomType] = useState("empty_room");
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentGeneration, setCurrentGeneration] = useState<Generation | null>(null);
@@ -138,6 +140,7 @@ export default function EditorPage() {
         originalImagePath: uploadedImagePath,
         styleId: selectedModule === "vision" ? selectedStyle : "enhance",
         module: selectedModule,
+        roomTypeId: selectedModule === "vision" ? selectedRoomType : undefined,
       });
 
       if ("noCredits" in result && result.noCredits) {
@@ -268,45 +271,7 @@ export default function EditorPage() {
               </div>
             )}
 
-            <div className="border border-neutral-200 bg-white p-6">
-              <span className="text-label text-neutral-400 mb-6 block">Configuración</span>
-
-              <div className="space-y-6">
-                <ModuleSelector
-                  selectedModule={selectedModule}
-                  onModuleChange={setSelectedModule}
-                  disabled={isGenerating || isCompleted}
-                />
-
-                {selectedModule === "vision" && (
-                  <StyleSelector
-                    selectedStyle={selectedStyle}
-                    onStyleChange={setSelectedStyle}
-                    disabled={isGenerating || isCompleted}
-                  />
-                )}
-              </div>
-
-              <button
-                onClick={handleGenerate}
-                disabled={!uploadedImageUrl || isGenerating || isCompleted}
-                className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Generando...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4" />
-                    {selectedModule === "enhance" ? "Mejorar foto" : "Transformar espacio"}
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Tips */}
+            {/* Tips - Now above configuration */}
             <div className="border border-neutral-200 bg-white p-6">
               <span className="text-label text-neutral-400 mb-4 block">Consejos</span>
               <ul className="space-y-3 text-[14px] text-neutral-600">
@@ -342,6 +307,52 @@ export default function EditorPage() {
                   </>
                 )}
               </ul>
+            </div>
+
+            {/* Configuration */}
+            <div className="border border-neutral-200 bg-white p-6">
+              <span className="text-label text-neutral-400 mb-6 block">Configuración</span>
+
+              <div className="space-y-6">
+                <ModuleSelector
+                  selectedModule={selectedModule}
+                  onModuleChange={setSelectedModule}
+                  disabled={isGenerating || isCompleted}
+                />
+
+                {selectedModule === "vision" && (
+                  <>
+                    <StyleSelector
+                      selectedStyle={selectedStyle}
+                      onStyleChange={setSelectedStyle}
+                      disabled={isGenerating || isCompleted}
+                    />
+                    <RoomTypeSelector
+                      selectedRoomType={selectedRoomType}
+                      onRoomTypeChange={setSelectedRoomType}
+                      disabled={isGenerating || isCompleted}
+                    />
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={handleGenerate}
+                disabled={!uploadedImageUrl || isGenerating || isCompleted}
+                className="w-full inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white h-12 text-[14px] font-medium transition-all mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Generando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    {selectedModule === "enhance" ? "Mejorar foto" : "Transformar espacio"}
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

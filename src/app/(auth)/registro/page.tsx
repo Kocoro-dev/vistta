@@ -2,27 +2,61 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Loader2, Mail, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Mail, ArrowLeft, CheckCircle2, User, Check, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 type ViewState = "form" | "email-sent";
 
-export default function LoginPage() {
+interface FieldErrors {
+  fullName?: string;
+  email?: string;
+  terms?: string;
+}
+
+export default function RegistroPage() {
   const [isLoading, setIsLoading] = useState<"google" | "email" | null>(null);
   const [view, setView] = useState<ViewState>("form");
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [touched, setTouched] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const validateEmail = (value: string): string | null => {
-    if (!value) return "Introduce tu email";
-    if (!emailRegex.test(value)) return "Email no válido";
-    return null;
+  const validateField = (field: string, value: string | boolean): string | undefined => {
+    switch (field) {
+      case "fullName":
+        if (!String(value).trim()) return "Introduce tu nombre";
+        return undefined;
+      case "email":
+        if (!value) return "Introduce tu email";
+        if (!emailRegex.test(String(value))) return "Email no válido";
+        return undefined;
+      case "terms":
+        if (!value) return "Debes aceptar los términos";
+        return undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  const handleFieldChange = (field: keyof FieldErrors) => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const handleOAuthLogin = async (provider: "google") => {
+    // For Google registration, only terms are required (name comes from Google)
+    const termsError = validateField("terms", acceptedTerms);
+    if (termsError) {
+      setErrors((prev) => ({ ...prev, terms: termsError }));
+      setTouched((prev) => ({ ...prev, terms: true }));
+      toast.error("Debes aceptar los términos y la política de privacidad");
+      return;
+    }
+
     setIsLoading(provider);
     try {
       const { createClient } = await import("@/lib/supabase/client");
@@ -43,12 +77,22 @@ export default function LoginPage() {
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const error = validateEmail(email);
-    setEmailError(error);
-    setTouched(true);
+    // Validate all fields
+    const newErrors: FieldErrors = {
+      fullName: validateField("fullName", fullName),
+      email: validateField("email", email),
+      terms: validateField("terms", acceptedTerms),
+    };
 
-    if (error) {
-      toast.error(error);
+    setErrors(newErrors);
+    setTouched({ fullName: true, email: true, terms: true });
+
+    const hasErrors = newErrors.fullName || newErrors.email || newErrors.terms;
+    if (hasErrors) {
+      const firstError = newErrors.fullName || newErrors.email || newErrors.terms;
+      if (firstError) {
+        toast.error(firstError);
+      }
       return;
     }
 
@@ -62,6 +106,9 @@ export default function LoginPage() {
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/callback`,
+          data: {
+            full_name: fullName.trim(),
+          },
         },
       });
 
@@ -106,10 +153,10 @@ export default function LoginPage() {
 
         <div className="relative z-10 max-w-md">
           <h1 className="text-[clamp(2rem,4vw,3.5rem)] font-medium text-display leading-[0.95] mb-6">
-            Bienvenido de nuevo
+            Transforma satisfacción con IA
           </h1>
           <p className="text-[17px] text-neutral-400 leading-relaxed">
-            Accede a tu panel de control y continúa transformando propiedades con IA.
+            Virtual staging profesional para agentes inmobiliarios y gestores de propiedades.
           </p>
         </div>
 
@@ -120,7 +167,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right panel - Login form */}
+      {/* Right panel - Registration form */}
       <div className="flex-1 flex items-center justify-center p-8 lg:p-12">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
@@ -132,13 +179,13 @@ export default function LoginPage() {
             <>
               <div className="mb-8">
                 <span className="text-label text-neutral-400 mb-4 block">
-                  Acceso
+                  Registro
                 </span>
                 <h2 className="text-[28px] font-medium text-neutral-900 text-editorial leading-[1.1]">
-                  Entra en tu cuenta
+                  Crea tu cuenta gratis
                 </h2>
                 <p className="text-[15px] text-neutral-500 mt-3">
-                  Te enviaremos un enlace mágico a tu email. Sin contraseñas.
+                  Empieza a transformar tus propiedades con IA en minutos.
                 </p>
               </div>
 
@@ -146,9 +193,57 @@ export default function LoginPage() {
               <form onSubmit={handleMagicLink} className="space-y-4 mb-6">
                 <div>
                   <label
+                    htmlFor="fullName"
+                    className={`block text-[13px] font-medium mb-2 transition-colors ${
+                      errors.fullName && touched.fullName ? "text-red-600" : "text-neutral-700"
+                    }`}
+                  >
+                    Nombre completo
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        handleFieldChange("fullName");
+                      }}
+                      onBlur={() => {
+                        setTouched((prev) => ({ ...prev, fullName: true }));
+                        const error = validateField("fullName", fullName);
+                        if (error) setErrors((prev) => ({ ...prev, fullName: error }));
+                      }}
+                      placeholder="María García"
+                      className={`w-full h-12 px-4 pl-11 border outline-none transition-all text-[14px] placeholder:text-neutral-400 ${
+                        errors.fullName && touched.fullName
+                          ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100 bg-red-50/30"
+                          : "border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
+                      }`}
+                      disabled={isLoading !== null}
+                      autoFocus
+                      aria-invalid={errors.fullName && touched.fullName ? "true" : "false"}
+                      aria-describedby={errors.fullName ? "fullName-error" : undefined}
+                    />
+                    <User className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
+                      errors.fullName && touched.fullName ? "text-red-400" : "text-neutral-400"
+                    }`} />
+                    {errors.fullName && touched.fullName && (
+                      <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                  {errors.fullName && touched.fullName && (
+                    <p id="fullName-error" className="mt-1.5 text-[12px] text-red-600 flex items-center gap-1">
+                      {errors.fullName}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
                     htmlFor="email"
                     className={`block text-[13px] font-medium mb-2 transition-colors ${
-                      emailError && touched ? "text-red-600" : "text-neutral-700"
+                      errors.email && touched.email ? "text-red-600" : "text-neutral-700"
                     }`}
                   >
                     Email
@@ -160,34 +255,78 @@ export default function LoginPage() {
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
-                        if (emailError) setEmailError(null);
+                        handleFieldChange("email");
                       }}
                       onBlur={() => {
-                        setTouched(true);
-                        const error = validateEmail(email);
-                        if (error) setEmailError(error);
+                        setTouched((prev) => ({ ...prev, email: true }));
+                        const error = validateField("email", email);
+                        if (error) setErrors((prev) => ({ ...prev, email: error }));
                       }}
                       placeholder="tu@email.com"
                       className={`w-full h-12 px-4 pl-11 border outline-none transition-all text-[14px] placeholder:text-neutral-400 ${
-                        emailError && touched
+                        errors.email && touched.email
                           ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100 bg-red-50/30"
                           : "border-neutral-200 focus:border-neutral-400 focus:ring-2 focus:ring-neutral-100"
                       }`}
                       disabled={isLoading !== null}
-                      autoFocus
-                      aria-invalid={emailError && touched ? "true" : "false"}
-                      aria-describedby={emailError ? "email-error" : undefined}
+                      aria-invalid={errors.email && touched.email ? "true" : "false"}
+                      aria-describedby={errors.email ? "email-error" : undefined}
                     />
                     <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 transition-colors ${
-                      emailError && touched ? "text-red-400" : "text-neutral-400"
+                      errors.email && touched.email ? "text-red-400" : "text-neutral-400"
                     }`} />
-                    {emailError && touched && (
+                    {errors.email && touched.email && (
                       <AlertCircle className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
                     )}
                   </div>
-                  {emailError && touched && (
+                  {errors.email && touched.email && (
                     <p id="email-error" className="mt-1.5 text-[12px] text-red-600 flex items-center gap-1">
-                      {emailError}
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                {/* Terms Checkbox */}
+                <div>
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={acceptedTerms}
+                      aria-invalid={errors.terms && touched.terms ? "true" : "false"}
+                      onClick={() => {
+                        setAcceptedTerms(!acceptedTerms);
+                        if (errors.terms) {
+                          setErrors((prev) => ({ ...prev, terms: undefined }));
+                        }
+                      }}
+                      className={`mt-0.5 flex-shrink-0 h-5 w-5 border rounded transition-all flex items-center justify-center ${
+                        acceptedTerms
+                          ? "bg-neutral-900 border-neutral-900"
+                          : errors.terms && touched.terms
+                          ? "border-red-400 bg-red-50/50"
+                          : "border-neutral-300 hover:border-neutral-400"
+                      }`}
+                      disabled={isLoading !== null}
+                    >
+                      {acceptedTerms && <Check className="h-3 w-3 text-white" />}
+                    </button>
+                    <label className={`text-[13px] leading-relaxed transition-colors ${
+                      errors.terms && touched.terms ? "text-red-600" : "text-neutral-600"
+                    }`}>
+                      He leído y acepto los{" "}
+                      <Link href="/terminos" target="_blank" className="text-neutral-900 hover:underline font-medium">
+                        términos de servicio
+                      </Link>{" "}
+                      y la{" "}
+                      <Link href="/privacidad" target="_blank" className="text-neutral-900 hover:underline font-medium">
+                        política de privacidad
+                      </Link>
+                    </label>
+                  </div>
+                  {errors.terms && touched.terms && (
+                    <p className="mt-1.5 text-[12px] text-red-600 flex items-center gap-1 ml-8">
+                      {errors.terms}
                     </p>
                   )}
                 </div>
@@ -200,7 +339,7 @@ export default function LoginPage() {
                   {isLoading === "email" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : null}
-                  Enviar enlace mágico
+                  Crear cuenta
                 </button>
               </form>
 
@@ -210,7 +349,7 @@ export default function LoginPage() {
                   <div className="w-full border-t border-neutral-200" />
                 </div>
                 <div className="relative flex justify-center text-[12px]">
-                  <span className="bg-white px-4 text-neutral-400">o continúa con</span>
+                  <span className="bg-white px-4 text-neutral-400">o regístrate con</span>
                 </div>
               </div>
 
@@ -230,11 +369,11 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Register link */}
+              {/* Login link */}
               <p className="text-center text-[14px] text-neutral-500">
-                ¿No tienes una cuenta?{" "}
-                <Link href="/registro" className="text-neutral-900 hover:underline font-medium">
-                  Regístrate gratis
+                ¿Ya tienes una cuenta?{" "}
+                <Link href="/login" className="text-neutral-900 hover:underline font-medium">
+                  Accede a tu dashboard
                 </Link>
               </p>
             </>
@@ -248,7 +387,7 @@ export default function LoginPage() {
               </div>
 
               <h2 className="text-[24px] font-medium text-neutral-900 text-editorial leading-[1.1] mb-3">
-                ¡Revisa tu email!
+                ¡Revisa tu email, {fullName.split(" ")[0]}!
               </h2>
 
               <p className="text-[15px] text-neutral-500 mb-2">

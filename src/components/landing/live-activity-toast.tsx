@@ -92,10 +92,10 @@ export function LiveActivityToast() {
   }, []);
 
   useEffect(() => {
-    // Initial delay before first toast
+    // Initial delay before first toast (at least 15 seconds after page load)
     const initialDelay = setTimeout(() => {
       showToast();
-    }, 10000);
+    }, 18000);
 
     return () => clearTimeout(initialDelay);
   }, [showToast]);

@@ -55,18 +55,6 @@ Note: ${customPrompt}`;
   return fullPrompt;
 }
 
-// Style presets - subtle enhancements only
-export const FLUX_STYLE_PROMPTS: Record<string, string> = {
-  modern: "Clean, bright natural lighting. Fresh and contemporary atmosphere.",
-  minimalist: "Bright space, clean look. Everything in place but cleaner.",
-  luxury: "Premium lighting, richer colors, better shadows. Elevated atmosphere.",
-  coastal: "Bright, airy natural light feeling. Fresh atmosphere.",
-  industrial: "Enhanced contrast, warm lighting. Raw elements visible.",
-  traditional: "Warm, inviting lighting. Cozy atmosphere.",
-  scandinavian: "Light, airy Scandinavian feel. Natural brightness.",
-  mediterranean: "Warm Mediterranean light. Earth tones enhanced.",
-};
-
 export async function generateWithFlux(
   input: FluxGenerationInput
 ): Promise<{ output: string }> {

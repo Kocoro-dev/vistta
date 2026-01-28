@@ -116,7 +116,7 @@ export function PricingCards({ content, className }: PricingCardsProps) {
 
                 {/* CTA */}
                 <Link
-                  href="/login"
+                  href="/registro"
                   className={cn(
                     "block w-full text-center py-4 text-[14px] font-medium transition-all",
                     plan.highlighted

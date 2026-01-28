@@ -51,11 +51,11 @@ export function FeatureFork({ content, className }: FeatureForkProps) {
                     {card.title}
                   </h3>
 
-                  <p className="text-[15px] leading-relaxed mb-2 text-neutral-500 group-hover:text-neutral-400 transition-colors duration-500">
+                  <p className="text-[15px] leading-relaxed mb-2 text-neutral-500 group-hover:text-neutral-300 transition-colors duration-500">
                     {cardContent.tagline}
                   </p>
 
-                  <p className="text-[14px] leading-relaxed mb-6 text-neutral-400 group-hover:text-neutral-500 transition-colors duration-500">
+                  <p className="text-[14px] leading-relaxed mb-6 text-neutral-400 group-hover:text-neutral-400 transition-colors duration-500">
                     {cardContent.description}
                   </p>
                 </div>
@@ -71,13 +71,13 @@ export function FeatureFork({ content, className }: FeatureForkProps) {
                 {/* CTA */}
                 <div className="p-8 pt-6">
                   <Link
-                    href="/login"
+                    href="/registro"
                     className="inline-flex items-center gap-2 text-[14px] font-medium text-neutral-900 group-hover:text-white transition-all duration-500"
                   >
                     {card.cta}
                     <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </Link>
-                  <p className="text-[12px] text-neutral-400 group-hover:text-neutral-500 mt-4 transition-colors duration-500">
+                  <p className="text-[12px] text-neutral-400 group-hover:text-neutral-400 mt-4 transition-colors duration-500">
                     Tanto Vistta Enhance como Vistta Vision están incluidos para todos nuestros clientes.
                   </p>
                 </div>

@@ -4,9 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   generateWithFlux,
   buildFluxPrompt,
-  FLUX_STYLE_PROMPTS,
 } from "@/lib/flux";
-import { STYLE_PRESETS, type GenerationInsert, type Generation, type GenerationModule, type Profile } from "@/types/database";
+import { STYLE_PRESETS, ROOM_TYPES, type GenerationInsert, type Generation, type GenerationModule, type Profile } from "@/types/database";
 import { redirect } from "next/navigation";
 import { FREE_CREDITS, UNLIMITED_USERS } from "@/lib/constants";
 import { applyWatermark, bufferToDataUrl } from "@/lib/watermark";
@@ -21,43 +20,93 @@ interface GenerateImageInput {
   styleId: string;
   module: GenerationModule;
   customPrompt?: string;
+  roomTypeId?: string;
 }
 
 // Prompts específicos para cada módulo
-const ENHANCE_BASE_PROMPT = `You are enhancing an existing furnished real estate photograph. Make ONLY SUBTLE improvements.
+const ENHANCE_BASE_PROMPT = `**Role:** Professional Real Estate Photographer and Digital Retoucher.
+**Task:** Enhance this existing photograph to magazine quality standards (Architectural Digest).
 
-CRITICAL RULES - NEVER VIOLATE:
-- KEEP the exact same room structure: walls, doors, windows, floor, ceiling
-- KEEP ALL furniture in the EXACT same positions
-- KEEP the same furniture styles - DO NOT replace with different furniture
-- KEEP the same color palette of walls and major elements
-- DO NOT add any new furniture or decorative items
-- DO NOT remove any major furniture pieces
-- DO NOT change the room layout or dimensions
+**PRIMARY DIRECTIVE: "THE INVISIBLE HAND"**
+Improve the image quality without the viewer realizing it has been altered. The room must remain the exact same room, just perfected.
 
-ALLOWED IMPROVEMENTS (subtle only):
-- Enhance lighting: brighter, more natural light, reduce harsh shadows
-- Clean up: remove small clutter, personal items, mess
-- Color enhancement: slightly more vibrant, appealing tones
-- Sharpness: clearer, more professional photo quality
-- Minor straightening: align objects that look crooked
+**STRICT GEOMETRY & FURNITURE RULES (DO NOT CHANGE):**
+- DO NOT move, remove, or add any furniture.
+- DO NOT change the style, color, or position of existing furniture.
+- DO NOT change flooring material, wall structure, or architectural elements.
+- DO NOT alter the room layout, perspective, or dimensions.
 
-The result MUST look like the SAME exact room, just with better photography quality and lighting.`;
+**REQUIRED IMPROVEMENTS:**
 
-const VISION_BASE_PROMPT = `You are a virtual home staging expert. Transform this EMPTY room into a beautifully furnished living space.
+1. **DECLUTTERING & CLEANING:**
+   - Remove visual noise: cables, wires, power strips, remote controls, chargers.
+   - Remove personal items: shoes, clothes, toiletries, bottles, papers, magazines.
+   - Clear surfaces: Remove clutter from counters, tables, and shelves, leaving only tasteful decorative objects.
 
-CRITICAL RULES:
-- KEEP the exact same room structure: walls, doors, windows, floor, ceiling
-- ADD appropriate furniture and decoration for the space
-- CREATE a cohesive, professionally staged look
-- MAINTAIN realistic lighting and proportions
-- DO NOT change architectural elements
+2. **DIGITAL RESTORATION:**
+   - Fix wall imperfections: smooth out peeling paint, cracks, scuffs, or marks.
+   - Clean surfaces: remove stains from rugs, scratches from floors, mold/dirt from corners and grouts.
+   - Straighten crooked items: pictures, curtains, lampshades, rugs.
+   - "Fresh coat of paint" effect: make walls look freshly painted in their original color.
 
-INSTRUCTIONS:
-- Add furniture that fits the room's size and layout
-- Include appropriate decor items (plants, art, rugs, etc.)
-- Create a welcoming, lived-in but clean aesthetic
-- Match the furniture style to the requested design style`;
+3. **LIGHTING & COLOR:**
+   - White balance: correct yellow or blue color casts for neutral, natural tones.
+   - Exposure: brighten dark corners, fix overexposed windows (HDR balancing effect).
+   - Atmosphere: create a "Golden Hour" or "Soft Daylight" professional real estate look.
+   - Shadows: soften harsh shadows for a warm, welcoming feel.
+
+4. **PHOTO QUALITY:**
+   - Sharpness: crisp, clear details throughout the image.
+   - Color vibrancy: slightly enhanced but realistic colors.
+   - Professional finish: magazine-ready, high-end real estate photography quality.
+
+**OUTPUT GOAL:**
+A pristine, polished, and perfectly lit version of the original photo. The viewer should feel the space looks "move-in ready" and professionally photographed, without detecting any digital manipulation.
+
+**NEGATIVE PROMPT:**
+AVOID: changing furniture, adding objects, altering room structure, oversaturated colors, artificial look, HDR overdone, cartoonish, blurry, visible editing artifacts.`;
+
+const VISION_BASE_PROMPT = `**Role:** Senior Interior Design Architect specialized in Virtual Staging.
+**Task:** Furnish this empty room to create a high-end, photorealistic listing image.
+
+**TARGET ROOM FUNCTION:**
+{{ROOM_TYPE_INSTRUCTION}}
+
+**CRITICAL GEOMETRY CONSTRAINTS:**
+- PRESERVE EXACTLY: All walls, windows, doors, ceiling, and flooring material.
+- DO NOT change the room's perspective, depth, or the view outside windows.
+- DO NOT add structural elements (columns, beams) that don't exist.
+- **Furniture Scale:** Ensure furniture fits realistically within the visible space. Do not overcrowd.
+
+**POLISH & ENHANCEMENT (apply subtly):**
+- Clean up any wall imperfections, stains, or marks.
+- Enhance lighting: brighter, more natural light, reduce harsh shadows.
+- Improve overall photo quality: sharper, clearer, magazine-ready.
+- Ensure colors are vibrant but realistic.
+
+**DESIGN STYLE: {{STYLE_NAME}}**
+{{STYLE_PROMPT}}
+
+**ATMOSPHERE:**
+{{STYLE_ATMOSPHERE}}
+
+**QUALITY SETTINGS:**
+Photorealistic, 8k resolution, Architectural Digest quality, sharp focus, cinematic lighting, professional interior photography.
+
+**NEGATIVE PROMPT:**
+AVOID: cartoonish, low resolution, blurry, distorted perspective, flying furniture, bad anatomy, impossible geometry, neon lights, cluttered, messy, oversaturated colors, watermark, text, signature.`;
+
+// Build Vision prompt with placeholders replaced
+function buildVisionPrompt(styleId: string, roomTypeId?: string): string {
+  const style = STYLE_PRESETS.find((s) => s.id === styleId) || STYLE_PRESETS[0];
+  const roomType = ROOM_TYPES.find((r) => r.id === roomTypeId) || ROOM_TYPES.find((r) => r.id === "empty_room")!;
+
+  return VISION_BASE_PROMPT
+    .replace("{{ROOM_TYPE_INSTRUCTION}}", roomType.instruction)
+    .replace("{{STYLE_NAME}}", style.nameEn)
+    .replace("{{STYLE_PROMPT}}", style.prompt)
+    .replace("{{STYLE_ATMOSPHERE}}", style.atmosphere);
+}
 
 export async function generateImage(input: GenerateImageInput) {
   console.log(`=== generateImage called (${AI_PROVIDER}) ===`);
@@ -118,12 +167,13 @@ export async function generateImage(input: GenerateImageInput) {
   }
 
   // Build the full prompt based on module
-  const basePrompt = input.module === "enhance" ? ENHANCE_BASE_PROMPT : VISION_BASE_PROMPT;
-  let fullPrompt = basePrompt;
+  let fullPrompt: string;
 
-  if (input.module === "vision") {
-    const stylePrompt = FLUX_STYLE_PROMPTS[input.styleId] || FLUX_STYLE_PROMPTS.modern;
-    fullPrompt = `${basePrompt}\n\nDesign style: ${stylePrompt}`;
+  if (input.module === "enhance") {
+    fullPrompt = ENHANCE_BASE_PROMPT;
+  } else {
+    // Vision module - use the new prompt builder
+    fullPrompt = buildVisionPrompt(input.styleId, input.roomTypeId);
   }
 
   if (input.customPrompt) {
